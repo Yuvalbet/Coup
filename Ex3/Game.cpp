@@ -7,6 +7,7 @@
 #include "Roles/Baron.hpp"
 #include "Roles/Judge.hpp"
 #include "Roles/Spy.hpp"
+#include <limits>
 
 Game::Game() : currentTurnIndex(0), coinBank(50) {}
 
@@ -101,119 +102,175 @@ void Game::tryBlockTax(Governor* governor) {
 
 void Game::playTurn() {
     Player* player = currentPlayer();
-    std::cout << "\n== " << player->getName() << "'s turn (" << player->getRoleName() << ") ==\n";
-    std::cout << "Coins: " << player->getCoins() << "\n";
 
-    if (player->getCoins() >= 10) {
-        std::cout << "You have 10+ coins. You MUST perform a coup. Choose target:\n";
-        for (size_t i = 0; i < players.size(); ++i) {
-            if (players[i] != player && players[i]->isActive()) {
-                std::cout << i << ". " << players[i]->getName() << "\n";
+    while (true) {
+        std::cout << "\n== " << player->getName() << "'s turn (" << player->getRoleName() << ") ==\n";
+        std::cout << "Coins: " << player->getCoins() << "\n";
+
+        // חובה לבצע הפיכה אם יש 10 מטבעות
+        if (player->getCoins() >= 10) {
+            std::cout << "You have 10+ coins. You MUST perform a coup. Choose target:\n";
+            std::vector<Player*> targets = getValidTargets(player);
+            for (size_t i = 0; i < targets.size(); ++i) {
+                std::cout << (i + 1) << ". " << targets[i]->getName() << "\n";
             }
+            int choice;
+            std::cin >> choice;
+            if (std::cin.fail() || choice < 1 || choice > (int)targets.size()) {
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                std::cout << "Invalid target.\n";
+                continue;
+            }
+            Player* target = targets[choice - 1];
+            try {
+                player->coup(*target);
+            } catch (const std::exception& e) {
+                std::cerr << "Coup failed: " << e.what() << "\n";
+                continue;
+            }
+            nextTurn();
+            return;
         }
-        int targetIndex;
-        std::cin >> targetIndex;
-        Player* target = players[targetIndex];
+
+        // מציג את האפשרויות
+        std::cout << "Choose an action:\n";
+        std::cout << "1. Gather\n";
+        std::cout << "2. Tax\n";
+        std::cout << "3. Bribe (extra action)\n";
+        std::cout << "4. Arrest another player\n";
+        std::cout << "5. Sanction another player\n";
+        std::cout << "6. Coup another player\n";
+        std::cout << "7. Skip\n";
+
+        bool isJudge = dynamic_cast<Judge*>(player);
+        bool isGovernor = dynamic_cast<Governor*>(player);
+        bool isSpy = dynamic_cast<Spy*>(player);
+
+        if (isJudge) std::cout << "8. Judge blocks bribe\n";
+        if (isGovernor) std::cout << "9. Governor blocks tax\n";
+        if (isSpy) std::cout << "10. Spy on another player\n";
+
+        int choice;
+        std::cin >> choice;
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Invalid input. Please enter a number.\n";
+            continue;
+        }
+
+        // בדיקת חוקיות לפי תפקיד
+        if ((choice == 8 && !isJudge) || (choice == 9 && !isGovernor) || (choice == 10 && !isSpy)) {
+            std::cout << "Invalid choice for your role. Try again.\n";
+            continue;
+        }
+
         try {
-            player->coup(*target);
+            switch (choice) {
+                case 1:
+                    player->gather();
+                    break;
+                case 2:
+                    player->tax();
+                    addBlockableAction(player, "tax");
+                    break;
+                case 3:
+                    player->bribe();
+                    addBlockableAction(player, "bribe");
+                    break;
+                case 4:
+                case 5:
+                case 6:
+                case 10: {
+                    std::vector<Player*> targets = getValidTargets(player);
+                    if (targets.empty()) {
+                        std::cout << "No valid targets.\n";
+                        continue;
+                    }
+
+                    std::cout << "Choose a target:\n";
+                    for (size_t i = 0; i < targets.size(); ++i) {
+                        std::cout << (i + 1) << ". " << targets[i]->getName() << "\n";
+                    }
+
+                    int targetChoice;
+                    std::cin >> targetChoice;
+                    if (std::cin.fail() || targetChoice < 1 || targetChoice > (int)targets.size()) {
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                        std::cout << "Invalid target.\n";
+                        continue;
+                    }
+
+                    Player* target = targets[targetChoice - 1];
+
+                    if (choice == 4) {
+                        Merchant* m = dynamic_cast<Merchant*>(target);
+                        if (m) {
+                            m->onArrestedBy(*player);
+                        } else {
+                            player->arrest(*target);
+                            if (auto* g = dynamic_cast<General*>(target)) {
+                                g->onArrested();
+                            }
+                        }
+                    } else if (choice == 5) {
+                        player->sanction(*target);
+                        if (auto* b = dynamic_cast<Baron*>(target)) {
+                            b->receiveSanctionFrom(*player);
+                        }
+                        if (auto* j = dynamic_cast<Judge*>(target)) {
+                            j->receiveSanctionFrom(*player);
+                        }
+                    } else if (choice == 6) {
+                        if (auto* g = dynamic_cast<General*>(target); g && g->getCoins() >= 5) {
+                            std::cout << g->getName() << " blocked the coup using 5 coins!\n";
+                            g->blockCoup(*target, *player);
+                        } else {
+                            player->coup(*target);
+                        }
+                    } else if (choice == 10) {
+                        Spy* s = dynamic_cast<Spy*>(player);
+                        if (s) s->spyOn(*target);
+                    }
+
+                    break;
+                }
+                case 7:
+                    std::cout << "Skipping turn.\n";
+                    break;
+                case 8:
+                    tryBlockBribe(static_cast<Judge*>(player));
+                    break;
+                case 9:
+                    tryBlockTax(static_cast<Governor*>(player));
+                    break;
+                default:
+                    std::cout << "Invalid choice. Try again.\n";
+                    continue;
+            }
+
+            break;  // יציאה מהלולאה – פעולה חוקית בוצעה
         } catch (const std::exception& e) {
-            std::cerr << "Coup failed: " << e.what() << "\n";
+            std::cerr << "Action failed: " << e.what() << "\n";
+            continue;
         }
-        nextTurn();
-        return;
-    }
-
-    std::cout << "Choose an action:\n";
-    std::cout << "1. Gather\n";
-    std::cout << "2. Tax\n";
-    std::cout << "3. Bribe (extra action)\n";
-    std::cout << "4. Arrest another player\n";
-    std::cout << "5. Sanction another player\n";
-    std::cout << "6. Coup another player\n";
-    std::cout << "7. Skip\n";
-    std::cout << "8. Judge blocks bribe\n";
-    std::cout << "9. Governor blocks tax\n";
-
-    int choice;
-    std::cin >> choice;
-
-    try {
-        switch (choice) {
-            case 1:
-                player->gather();
-                break;
-            case 2:
-                player->tax();
-                addBlockableAction(player, "tax");
-                break;
-            case 3:
-                player->bribe();
-                addBlockableAction(player, "bribe");
-                break;
-            case 4:
-            case 5:
-            case 6: {
-                std::cout << "Choose target:\n";
-                for (size_t i = 0; i < players.size(); ++i) {
-                    if (players[i] != player && players[i]->isActive()) {
-                        std::cout << i << ". " << players[i]->getName() << "\n";
-                    }
-                }
-                int targetIndex;
-                std::cin >> targetIndex;
-                if (targetIndex < 0 || targetIndex >= players.size() || !players[targetIndex]->isActive()) {
-                    std::cout << "Invalid target.\n";
-                    return;
-                }
-                Player* target = players[targetIndex];
-
-                if (choice == 4) {
-                    Merchant* m = dynamic_cast<Merchant*>(target);
-                    if (m) {
-                        m->onArrestedBy(*player);
-                    } else {
-                        player->arrest(*target);
-                        General* g = dynamic_cast<General*>(target);
-                        if (g) g->onArrested();
-                    }
-                } else if (choice == 5) {
-                    player->sanction(*target);
-                    Baron* b = dynamic_cast<Baron*>(target);
-                    if (b) b->receiveSanctionFrom(*player);
-                    Judge* j = dynamic_cast<Judge*>(target);
-                    if (j) j->receiveSanctionFrom(*player);
-                } else if (choice == 6) {
-                    General* defender = dynamic_cast<General*>(target);
-                    if (defender && defender->getCoins() >= 5) {
-                        std::cout << defender->getName() << " blocked the coup using 5 coins!\n";
-                        defender->blockCoup(*target, *player);
-                    } else {
-                        player->coup(*target);
-                    }
-                }
-                break;
-            }
-            case 7:
-                std::cout << "Skipping turn.\n";
-                break;
-            case 8: {
-                Judge* j = dynamic_cast<Judge*>(player);
-                if (j) tryBlockBribe(j);
-                else std::cout << "You are not a Judge.\n";
-                break;
-            }
-            case 9: {
-                Governor* g = dynamic_cast<Governor*>(player);
-                if (g) tryBlockTax(g);
-                else std::cout << "You are not a Governor.\n";
-                break;
-            }
-            default:
-                std::cout << "Invalid choice.\n";
-        }
-    } catch (const std::exception& e) {
-        std::cerr << "Action failed: " << e.what() << "\n";
     }
 
     nextTurn();
 }
+
+
+
+
+std::vector<Player*> Game::getValidTargets(Player* current) const {
+    std::vector<Player*> targets;
+    for (Player* p : players) {
+        if (p != current && p->isActive()) {
+            targets.push_back(p);
+        }
+    }
+    return targets;
+}
+

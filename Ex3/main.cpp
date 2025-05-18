@@ -13,10 +13,10 @@ int main() {
     game.addPlayer(new Governor("Dana"));    // תומך ב־blockTax
     game.addPlayer(new Spy("Eli"));          // יכול לחסום arrest
     game.addPlayer(new Baron("Noa"));        // מקבל פיצוי על sanction
-    game.addPlayer(new General("Tom"));      // יכול לחסום coup
+    /*game.addPlayer(new General("Tom"));      // יכול לחסום coup
     game.addPlayer(new Judge("Maya"));       // יכול לחסום bribe
     game.addPlayer(new Merchant("Itay"));    // מקבל מטבע אוטומטי עם 3+
-
+*/
     std::cout << "== Start of Game ==\n";
     for (auto& name : game.getActivePlayerNames()) {
         std::cout << name << " is in the game.\n";

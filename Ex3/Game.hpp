@@ -22,6 +22,8 @@ private:
     int coinBank;
     std::vector<BlockableAction> pendingActions;
 
+    std::vector<Player*> getValidTargets(Player* current) const;
+
 public:
     Game();
 
