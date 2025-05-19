@@ -15,6 +15,5 @@ void Spy::spyOn(Player& other) {
     std::cout << name << " spied on " << other.getName()
               << " who has " << other.getCoins() << " coins.\n";
 
-    other.setArrestedLastTurn(true);
     std::cout << other.getName() << " will be prevented from arresting next turn.\n";
 }

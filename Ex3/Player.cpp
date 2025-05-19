@@ -1,9 +1,9 @@
 #include "Player.hpp"
-#include <iostream> // חובה בשביל std::cout
+#include <iostream>
 
 // Constructor
 Player::Player(const std::string& name)
-    : name(name), coins(0), active(true), sanctioned(false), arrestedLastTurn(false) {}
+    : name(name), coins(0), active(true), sanctioned(false) {}
 
 // Getters
 std::string Player::getName() const {
@@ -20,10 +20,6 @@ bool Player::isActive() const {
 
 bool Player::isSanctioned() const {
     return sanctioned;
-}
-
-bool Player::wasArrestedLastTurn() const {
-    return arrestedLastTurn;
 }
 
 // Setters
@@ -51,15 +47,6 @@ void Player::deactivate() {
 
 void Player::setSanctioned(bool value) {
     sanctioned = value;
-    if (value) {
-        std::cout << name << " has been sanctioned and cannot use gather or tax.\n";
-    } else {
-        std::cout << name << "'s sanction has been lifted.\n";
-    }
-}
-
-void Player::setArrestedLastTurn(bool value) {
-    arrestedLastTurn = value;
 }
 
 // Actions
@@ -88,17 +75,19 @@ void Player::arrest(Player& other) {
     if (!other.isActive()) {
         throw std::invalid_argument("Cannot arrest an inactive player.");
     }
-    if (other.wasArrestedLastTurn()) {
-        throw std::invalid_argument("Player was already arrested last turn.");
-    }
     other.removeCoins(1);
-    other.setArrestedLastTurn(true);
     std::cout << name << " arrested " << other.getName() << " and took 1 coin.\n";
 }
 
 void Player::sanction(Player& other) {
     if (coins < 3) {
         throw std::invalid_argument("Not enough coins to perform sanction.");
+    }
+    if (!other.isActive()) {
+        throw std::invalid_argument("Cannot sanction an inactive player.");
+    }
+    if (sanctioned) {
+        throw std::invalid_argument("Sanctioned player cannot perform sanction.");
     }
     removeCoins(3);
     other.setSanctioned(true);

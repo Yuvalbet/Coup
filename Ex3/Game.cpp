@@ -9,7 +9,7 @@
 #include "Roles/Spy.hpp"
 #include <limits>
 
-Game::Game() : currentTurnIndex(0), coinBank(50) {}
+Game::Game() : currentTurnIndex(0), sanctionedLastRound(nullptr), lastArrestedPlayer(nullptr) {}
 
 void Game::addPlayer(Player* player) {
     players.push_back(player);
@@ -24,13 +24,25 @@ void Game::nextTurn() {
         currentTurnIndex = (currentTurnIndex + 1) % players.size();
     } while (!players[currentTurnIndex]->isActive());
 
-    pendingActions.clear();
+   
+
+    // ✅ אם השחקן הנוכחי היה מי שסומן כ־sanctioned מהתור הקודם – החרם מבוטל רק עכשיו
+    if (players[currentTurnIndex] == sanctionedLastRound) {
+        players[currentTurnIndex]->setSanctioned(true);   // מפעילים את החרם עכשיו
+        sanctionedLastRound = nullptr;                    // מסמנים שאין יותר חרם שממתין
+    } else {
+        players[currentTurnIndex]->setSanctioned(false);  // כל שאר השחקנים לא בחרם
+    }
+
 
     Merchant* merchant = dynamic_cast<Merchant*>(players[currentTurnIndex]);
     if (merchant && merchant->getCoins() >= 3) {
         merchant->onStartTurn();
     }
+
+    
 }
+
 
 Player* Game::currentPlayer() const {
     return players[currentTurnIndex];
@@ -59,24 +71,15 @@ std::string Game::getWinner() const {
     throw std::runtime_error("Game is still ongoing.");
 }
 
-void Game::addToBank(int amount) {
-    coinBank += amount;
-}
-
-void Game::removeFromBank(int amount) {
-    if (coinBank < amount) {
-        throw std::invalid_argument("Bank does not have enough coins.");
-    }
-    coinBank -= amount;
-}
-
-int Game::getBankCoins() const {
-    return coinBank;
-}
-
 void Game::addBlockableAction(Player* performer, const std::string& type) {
+    std::cout << "[DEBUG] Adding blockable action: " << type << " by " << performer->getName() << "\n";
+    std::cout << "[DEBUG] Current size before: " << pendingActions.size() << "\n";
     pendingActions.push_back({performer, type});
+    std::cout << "[DEBUG] Current size after: " << pendingActions.size() << "\n";
 }
+
+
+
 
 void Game::tryBlockBribe(Judge* judge) {
     for (auto it = pendingActions.begin(); it != pendingActions.end(); ++it) {
@@ -90,6 +93,11 @@ void Game::tryBlockBribe(Judge* judge) {
 }
 
 void Game::tryBlockTax(Governor* governor) {
+    std::cout << "[DEBUG] Trying to block tax. Pending actions size: " << pendingActions.size() << "\n";
+    for (const auto& action : pendingActions) {
+        std::cout << "- " << action.type << " by " << action.performer->getName() << "\n";
+    }
+
     for (auto it = pendingActions.begin(); it != pendingActions.end(); ++it) {
         if (it->type == "tax") {
             governor->blockTax(*(it->performer));
@@ -100,14 +108,16 @@ void Game::tryBlockTax(Governor* governor) {
     std::cout << "No tax action to block.\n";
 }
 
+
+
 void Game::playTurn() {
     Player* player = currentPlayer();
+    int extraActions = 1;
 
-    while (true) {
+    while (extraActions > 0) {
         std::cout << "\n== " << player->getName() << "'s turn (" << player->getRoleName() << ") ==\n";
         std::cout << "Coins: " << player->getCoins() << "\n";
 
-        // חובה לבצע הפיכה אם יש 10 מטבעות
         if (player->getCoins() >= 10) {
             std::cout << "You have 10+ coins. You MUST perform a coup. Choose target:\n";
             std::vector<Player*> targets = getValidTargets(player);
@@ -125,6 +135,7 @@ void Game::playTurn() {
             Player* target = targets[choice - 1];
             try {
                 player->coup(*target);
+                player->setSanctioned(false);
             } catch (const std::exception& e) {
                 std::cerr << "Coup failed: " << e.what() << "\n";
                 continue;
@@ -133,23 +144,21 @@ void Game::playTurn() {
             return;
         }
 
-        // מציג את האפשרויות
         std::cout << "Choose an action:\n";
         std::cout << "1. Gather\n";
         std::cout << "2. Tax\n";
-        std::cout << "3. Bribe (extra action)\n";
+        std::cout << "3. Bribe (extra actions)\n";
         std::cout << "4. Arrest another player\n";
         std::cout << "5. Sanction another player\n";
         std::cout << "6. Coup another player\n";
-        std::cout << "7. Skip\n";
 
         bool isJudge = dynamic_cast<Judge*>(player);
         bool isGovernor = dynamic_cast<Governor*>(player);
         bool isSpy = dynamic_cast<Spy*>(player);
 
-        if (isJudge) std::cout << "8. Judge blocks bribe\n";
-        if (isGovernor) std::cout << "9. Governor blocks tax\n";
-        if (isSpy) std::cout << "10. Spy on another player\n";
+        if (isJudge) std::cout << "7. Judge blocks bribe\n";
+        if (isGovernor) std::cout << "8. Governor blocks tax\n";
+        if (isSpy) std::cout << "9. Spy on another player\n";
 
         int choice;
         std::cin >> choice;
@@ -160,9 +169,20 @@ void Game::playTurn() {
             continue;
         }
 
-        // בדיקת חוקיות לפי תפקיד
-        if ((choice == 8 && !isJudge) || (choice == 9 && !isGovernor) || (choice == 10 && !isSpy)) {
+        if ((choice == 7 && !isJudge) || (choice == 8 && !isGovernor) || (choice == 9 && !isSpy)) {
             std::cout << "Invalid choice for your role. Try again.\n";
+            continue;
+        }
+
+        if ((choice == 3 && player->getCoins() < 4) ||
+            (choice == 5 && player->getCoins() < 3) ||
+            (choice == 6 && player->getCoins() < 7)) {
+            std::cout << "Not enough coins for that action. Try again.\n";
+            continue;
+        }
+
+        if (player->isSanctioned() && (choice == 1 || choice == 2)) {
+            std::cout << "You are sanctioned and cannot use gather or tax this turn.\n";
             continue;
         }
 
@@ -173,27 +193,28 @@ void Game::playTurn() {
                     break;
                 case 2:
                     player->tax();
-                    addBlockableAction(player, "tax");
+                    if (!dynamic_cast<Governor*>(player)) {
+                        addBlockableAction(player, "tax");
+                    }
                     break;
                 case 3:
                     player->bribe();
                     addBlockableAction(player, "bribe");
+                    extraActions += 2;
                     break;
                 case 4:
                 case 5:
                 case 6:
-                case 10: {
+                case 9: {
                     std::vector<Player*> targets = getValidTargets(player);
                     if (targets.empty()) {
                         std::cout << "No valid targets.\n";
                         continue;
                     }
-
                     std::cout << "Choose a target:\n";
                     for (size_t i = 0; i < targets.size(); ++i) {
                         std::cout << (i + 1) << ". " << targets[i]->getName() << "\n";
                     }
-
                     int targetChoice;
                     std::cin >> targetChoice;
                     if (std::cin.fail() || targetChoice < 1 || targetChoice > (int)targets.size()) {
@@ -202,27 +223,25 @@ void Game::playTurn() {
                         std::cout << "Invalid target.\n";
                         continue;
                     }
-
                     Player* target = targets[targetChoice - 1];
 
                     if (choice == 4) {
-                        Merchant* m = dynamic_cast<Merchant*>(target);
-                        if (m) {
+                        if (target == lastArrestedPlayer) {
+                            std::cout << "You cannot arrest the same player consecutively. Try another target.\n";
+                            continue;
+                        }
+                        if (auto* m = dynamic_cast<Merchant*>(target)) {
                             m->onArrestedBy(*player);
                         } else {
                             player->arrest(*target);
-                            if (auto* g = dynamic_cast<General*>(target)) {
-                                g->onArrested();
-                            }
+                            if (auto* g = dynamic_cast<General*>(target)) g->onArrested();
                         }
+                        lastArrestedPlayer = target;
                     } else if (choice == 5) {
                         player->sanction(*target);
-                        if (auto* b = dynamic_cast<Baron*>(target)) {
-                            b->receiveSanctionFrom(*player);
-                        }
-                        if (auto* j = dynamic_cast<Judge*>(target)) {
-                            j->receiveSanctionFrom(*player);
-                        }
+                        sanctionedLastRound = target;
+                        if (auto* b = dynamic_cast<Baron*>(target)) b->receiveSanctionFrom(*player);
+                        if (auto* j = dynamic_cast<Judge*>(target)) j->receiveSanctionFrom(*player);
                     } else if (choice == 6) {
                         if (auto* g = dynamic_cast<General*>(target); g && g->getCoins() >= 5) {
                             std::cout << g->getName() << " blocked the coup using 5 coins!\n";
@@ -230,39 +249,35 @@ void Game::playTurn() {
                         } else {
                             player->coup(*target);
                         }
-                    } else if (choice == 10) {
-                        Spy* s = dynamic_cast<Spy*>(player);
-                        if (s) s->spyOn(*target);
+                    } else if (choice == 9) {
+                        if (auto* s = dynamic_cast<Spy*>(player)) s->spyOn(*target);
+                        continue;
                     }
-
                     break;
                 }
                 case 7:
-                    std::cout << "Skipping turn.\n";
-                    break;
-                case 8:
                     tryBlockBribe(static_cast<Judge*>(player));
                     break;
-                case 9:
+                case 8:
                     tryBlockTax(static_cast<Governor*>(player));
                     break;
                 default:
                     std::cout << "Invalid choice. Try again.\n";
                     continue;
             }
-
-            break;  // יציאה מהלולאה – פעולה חוקית בוצעה
         } catch (const std::exception& e) {
             std::cerr << "Action failed: " << e.what() << "\n";
             continue;
         }
+
+        extraActions--;
     }
-
+    
     nextTurn();
+    pendingActions.clear();
+    
+    
 }
-
-
-
 
 std::vector<Player*> Game::getValidTargets(Player* current) const {
     std::vector<Player*> targets;
@@ -273,4 +288,3 @@ std::vector<Player*> Game::getValidTargets(Player* current) const {
     }
     return targets;
 }
-

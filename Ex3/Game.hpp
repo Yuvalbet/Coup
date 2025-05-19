@@ -19,10 +19,10 @@ private:
 
     std::vector<Player*> players;
     int currentTurnIndex;
-    int coinBank;
     std::vector<BlockableAction> pendingActions;
-
     std::vector<Player*> getValidTargets(Player* current) const;
+    Player* sanctionedLastRound = nullptr;
+    Player* lastArrestedPlayer;
 
 public:
     Game();
@@ -32,10 +32,6 @@ public:
     Player* currentPlayer() const;
     std::vector<std::string> getActivePlayerNames() const;
     std::string getWinner() const;
-
-    void addToBank(int amount);
-    void removeFromBank(int amount);
-    int getBankCoins() const;
 
     void playTurn();
 
