@@ -4,13 +4,17 @@
 #include <string>
 #include <stdexcept>
 
+
 class Player {
+    class Game;
 protected:
     std::string name;
     int coins;
     bool active;
     bool sanctioned;
     bool arrestedLastTurn;
+    int arrestBlockedTurns = 0;
+
 
 public:
     Player(const std::string& name);
@@ -22,6 +26,7 @@ public:
     bool isActive() const;
     bool isSanctioned() const;
     bool wasArrestedLastTurn() const;
+    bool isArrestBlocked() const;
 
     // Setters
     void addCoins(int amount);
@@ -29,6 +34,8 @@ public:
     void deactivate();
     void setSanctioned(bool value);
     void setArrestedLastTurn(bool value);
+    void updateArrestBlock(bool reset);
+
 
     // תפקיד (מוחזר במחלקות יורשות)
     virtual std::string getRoleName() const = 0;

@@ -7,6 +7,7 @@
 #include "Roles/Baron.hpp"
 #include "Roles/Judge.hpp"
 #include "Roles/Spy.hpp"
+#include "Player.hpp"
 #include <limits>
 
 Game::Game() : currentTurnIndex(0), sanctionedLastRound(nullptr), lastArrestedPlayer(nullptr) {}
@@ -20,6 +21,7 @@ const std::vector<Player*>& Game::getPlayers() const {
 }
 
 void Game::nextTurn() {
+
     do {
         currentTurnIndex = (currentTurnIndex + 1) % players.size();
     } while (!players[currentTurnIndex]->isActive());
@@ -71,42 +73,36 @@ std::string Game::getWinner() const {
     throw std::runtime_error("Game is still ongoing.");
 }
 
-void Game::addBlockableAction(Player* performer, const std::string& type) {
-    std::cout << "[DEBUG] Adding blockable action: " << type << " by " << performer->getName() << "\n";
-    std::cout << "[DEBUG] Current size before: " << pendingActions.size() << "\n";
-    pendingActions.push_back({performer, type});
-    std::cout << "[DEBUG] Current size after: " << pendingActions.size() << "\n";
-}
 
 
 
 
-void Game::tryBlockBribe(Judge* judge) {
-    for (auto it = pendingActions.begin(); it != pendingActions.end(); ++it) {
-        if (it->type == "bribe") {
-            judge->blockBribe(*(it->performer));
-            pendingActions.erase(it);
-            return;
-        }
-    }
-    std::cout << "No bribe action to block.\n";
-}
+// void Game::tryBlockBribe(Judge* judge) {
+//     for (auto it = pendingActions.begin(); it != pendingActions.end(); ++it) {
+//         if (it->type == "bribe") {
+//             judge->blockBribe(*(it->performer));
+//             pendingActions.erase(it);
+//             return;
+//         }
+//     }
+//     std::cout << "No bribe action to block.\n";
+// }
 
-void Game::tryBlockTax(Governor* governor) {
-    std::cout << "[DEBUG] Trying to block tax. Pending actions size: " << pendingActions.size() << "\n";
-    for (const auto& action : pendingActions) {
-        std::cout << "- " << action.type << " by " << action.performer->getName() << "\n";
-    }
+// void Game::tryBlockTax(Governor* governor) {
+//     std::cout << "[DEBUG] Trying to block tax. Pending actions size: " << pendingActions.size() << "\n";
+//     for (const auto& action : pendingActions) {
+//         std::cout << "- " << action.type << " by " << action.performer->getName() << "\n";
+//     }
 
-    for (auto it = pendingActions.begin(); it != pendingActions.end(); ++it) {
-        if (it->type == "tax") {
-            governor->blockTax(*(it->performer));
-            pendingActions.erase(it);
-            return;
-        }
-    }
-    std::cout << "No tax action to block.\n";
-}
+//     for (auto it = pendingActions.begin(); it != pendingActions.end(); ++it) {
+//         if (it->type == "tax") {
+//             governor->blockTax(*(it->performer));
+//             pendingActions.erase(it);
+//             return;
+//         }
+//     }
+//     std::cout << "No tax action to block.\n";
+// }
 
 
 
@@ -156,8 +152,6 @@ void Game::playTurn() {
         bool isGovernor = dynamic_cast<Governor*>(player);
         bool isSpy = dynamic_cast<Spy*>(player);
 
-        if (isJudge) std::cout << "7. Judge blocks bribe\n";
-        if (isGovernor) std::cout << "8. Governor blocks tax\n";
         if (isSpy) std::cout << "9. Spy on another player\n";
 
         int choice;
@@ -169,7 +163,7 @@ void Game::playTurn() {
             continue;
         }
 
-        if ((choice == 7 && !isJudge) || (choice == 8 && !isGovernor) || (choice == 9 && !isSpy)) {
+        if (choice == 9 && !isSpy) {
             std::cout << "Invalid choice for your role. Try again.\n";
             continue;
         }
@@ -191,17 +185,51 @@ void Game::playTurn() {
                 case 1:
                     player->gather();
                     break;
-                case 2:
+                case 2: 
                     player->tax();
-                    if (!dynamic_cast<Governor*>(player)) {
-                        addBlockableAction(player, "tax");
+                    for (Player* p : players) {
+                        if (p == player || !p->isActive()) continue;
+
+                        if (Governor* g = dynamic_cast<Governor*>(p)) {
+                            std::cout << g->getName() << ", do you want to block the tax? (1 = yes, 0 = no): ";
+                            int response;
+                            std::cin >> response;
+
+                            if (response == 1) {
+                                g->blockTax(*player);
+                                break;
+                            }
+                        }
                     }
+                
+
                     break;
+                
+
+
                 case 3:
                     player->bribe();
-                    addBlockableAction(player, "bribe");
-                    extraActions += 2;
+                    for (Player* p : players) {
+                        if (p == player || !p->isActive()) continue;
+
+                        if (Judge* g = dynamic_cast<Judge*>(p)) {
+                            std::cout << g->getName() << ", do you want to block the bribe? (1 = yes, 0 = no): ";
+                            int response;
+                            std::cin >> response;
+
+                            if (response == 1) {
+                                g->blockBribe(*player);
+                                break;
+                            }
+                            else{
+                                extraActions += 2;
+                            }
+                        }
+                    }
+                    
+
                     break;
+                
                 case 4:
                 case 5:
                 case 6:
@@ -226,10 +254,18 @@ void Game::playTurn() {
                     Player* target = targets[targetChoice - 1];
 
                     if (choice == 4) {
+                        if (player->isArrestBlocked()) {
+                            std::cout << player->getName() << " is under surveillance and cannot perform arrest this turn.\n";
+                                continue;
+                            }
+
                         if (target == lastArrestedPlayer) {
                             std::cout << "You cannot arrest the same player consecutively. Try another target.\n";
                             continue;
                         }
+
+                     
+
                         if (auto* m = dynamic_cast<Merchant*>(target)) {
                             m->onArrestedBy(*player);
                         } else {
@@ -237,7 +273,8 @@ void Game::playTurn() {
                             if (auto* g = dynamic_cast<General*>(target)) g->onArrested();
                         }
                         lastArrestedPlayer = target;
-                    } else if (choice == 5) {
+                    }
+                        else if (choice == 5) {
                         player->sanction(*target);
                         sanctionedLastRound = target;
                         if (auto* b = dynamic_cast<Baron*>(target)) b->receiveSanctionFrom(*player);
@@ -255,26 +292,22 @@ void Game::playTurn() {
                     }
                     break;
                 }
-                case 7:
-                    tryBlockBribe(static_cast<Judge*>(player));
-                    break;
-                case 8:
-                    tryBlockTax(static_cast<Governor*>(player));
-                    break;
+                
                 default:
                     std::cout << "Invalid choice. Try again.\n";
                     continue;
             }
-        } catch (const std::exception& e) {
+        } 
+        catch (const std::exception& e) {
             std::cerr << "Action failed: " << e.what() << "\n";
             continue;
         }
 
         extraActions--;
     }
-    
+
+    player->updateArrestBlock(false);
     nextTurn();
-    pendingActions.clear();
     
     
 }

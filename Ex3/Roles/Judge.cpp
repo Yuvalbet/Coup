@@ -1,6 +1,7 @@
 #include "Judge.hpp"
 #include <iostream> 
 
+
 Judge::Judge(const std::string& name) : Player(name) {}
 
 std::string Judge::getRoleName() const {

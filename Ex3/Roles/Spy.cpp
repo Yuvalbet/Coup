@@ -1,6 +1,7 @@
 #include "Spy.hpp"
 #include <iostream>
 
+
 Spy::Spy(const std::string& name) : Player(name) {}
 
 std::string Spy::getRoleName() const {
@@ -16,4 +17,6 @@ void Spy::spyOn(Player& other) {
               << " who has " << other.getCoins() << " coins.\n";
 
     std::cout << other.getName() << " will be prevented from arresting next turn.\n";
+
+    other.updateArrestBlock(true); // הפעלת חסימה
 }

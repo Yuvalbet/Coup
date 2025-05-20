@@ -1,6 +1,7 @@
 #include "Governor.hpp"
 #include <iostream>
 
+
 Governor::Governor(const std::string& name) : Player(name) {}
 
 std::string Governor::getRoleName() const {

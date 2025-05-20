@@ -3,7 +3,7 @@
 
 // Constructor
 Player::Player(const std::string& name)
-    : name(name), coins(0), active(true), sanctioned(false) {}
+    : name(name), coins(0), active(true), sanctioned(false),arrestBlockedTurns(0) {}
 
 // Getters
 std::string Player::getName() const {
@@ -20,6 +20,10 @@ bool Player::isActive() const {
 
 bool Player::isSanctioned() const {
     return sanctioned;
+}
+
+bool Player::isArrestBlocked() const {
+    return arrestBlockedTurns > 0;
 }
 
 // Setters
@@ -49,6 +53,16 @@ void Player::setSanctioned(bool value) {
     sanctioned = value;
 }
 
+void Player::updateArrestBlock(bool reset) {
+    if (reset) {
+        arrestBlockedTurns = 1; // קביעת חסימה לתור אחד
+    } else if (arrestBlockedTurns > 0) {
+        arrestBlockedTurns--;   // הפחתה בתום תור
+    }
+}
+
+
+
 // Actions
 void Player::gather() {
     if (sanctioned) {
@@ -63,6 +77,7 @@ void Player::tax() {
         throw std::invalid_argument("Sanctioned player cannot use tax.");
     }
     addCoins(2);
+    
     std::cout << name << " received 2 coins from tax.\n";
 }
 
@@ -86,9 +101,7 @@ void Player::sanction(Player& other) {
     if (!other.isActive()) {
         throw std::invalid_argument("Cannot sanction an inactive player.");
     }
-    if (sanctioned) {
-        throw std::invalid_argument("Sanctioned player cannot perform sanction.");
-    }
+    
     removeCoins(3);
     other.setSanctioned(true);
     std::cout << name << " sanctioned " << other.getName() << ".\n";

@@ -12,15 +12,9 @@
 
 class Game {
 private:
-    struct BlockableAction {
-        Player* performer;
-        std::string type; // "bribe", "tax"
-    };
 
     std::vector<Player*> players;
     int currentTurnIndex;
-    std::vector<BlockableAction> pendingActions;
-    std::vector<Player*> getValidTargets(Player* current) const;
     Player* sanctionedLastRound = nullptr;
     Player* lastArrestedPlayer;
 
@@ -35,9 +29,9 @@ public:
 
     void playTurn();
 
-    void addBlockableAction(Player* performer, const std::string& type);
     void tryBlockBribe(Judge* judge);
     void tryBlockTax(Governor* governor);
+    std::vector<Player*> getValidTargets(Player* current) const;
 
     const std::vector<Player*>& getPlayers() const; // לשחרור זיכרון
 };

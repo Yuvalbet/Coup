@@ -1,6 +1,7 @@
 #include "General.hpp"
 #include <iostream>
 
+
 General::General(const std::string& name) : Player(name) {}
 
 std::string General::getRoleName() const {

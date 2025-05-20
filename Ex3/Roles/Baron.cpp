@@ -1,6 +1,7 @@
 #include "Baron.hpp"
 #include <iostream>
 
+
 Baron::Baron(const std::string& name) : Player(name) {}
 
 std::string Baron::getRoleName() const {

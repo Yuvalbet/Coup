@@ -2,6 +2,7 @@
 #include <iostream>
 
 
+
 Merchant::Merchant(const std::string& name) : Player(name) {}
 
 std::string Merchant::getRoleName() const {
