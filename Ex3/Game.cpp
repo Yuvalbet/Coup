@@ -151,7 +151,9 @@ void Game::playTurn() {
         bool isJudge = dynamic_cast<Judge*>(player);
         bool isGovernor = dynamic_cast<Governor*>(player);
         bool isSpy = dynamic_cast<Spy*>(player);
-
+        bool isBaron = dynamic_cast<Baron*>(player);
+        
+        if (isBaron) std::cout << "8. Invest (Baron only)\n";
         if (isSpy) std::cout << "9. Spy on another player\n";
 
         int choice;
@@ -229,7 +231,21 @@ void Game::playTurn() {
                     
 
                     break;
-                
+                case 8: {
+                    Baron* baron = dynamic_cast<Baron*>(player);
+                    if (!baron) {
+                        std::cout << "Invalid choice for your role. Try again.\n";
+                        continue;
+                    }
+                    try {
+                        baron->invest();
+                    } catch (const std::exception& e) {
+                        std::cerr << "Investment failed: " << e.what() << "\n";
+                        continue;
+                    }
+                    break;
+                }
+                        
                 case 4:
                 case 5:
                 case 6:

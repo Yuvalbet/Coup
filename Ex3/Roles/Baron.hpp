@@ -14,6 +14,7 @@ public:
 
     // Override לפעולה sanction – כדי שיקבל פיצוי
     void receiveSanctionFrom(Player& attacker);  // נקרא מתוך Game או מתוך sanction()
+    
 };
 
 #endif // BARON_HPP
