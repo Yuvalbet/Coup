@@ -265,7 +265,7 @@ void Game::playTurn() {
                         std::cin.clear();
                         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                         std::cout << "Invalid target.\n";
-                        continue;
+                        continue;  
                     }
                     Player* target = targets[targetChoice - 1];
 
@@ -282,13 +282,22 @@ void Game::playTurn() {
 
                      
 
-                        if (auto* m = dynamic_cast<Merchant*>(target)) {
-                            m->onArrestedBy(*player);
-                        } else {
-                            player->arrest(*target);
-                            if (auto* g = dynamic_cast<General*>(target)) g->onArrested();
+                        try {
+                            if (auto* m = dynamic_cast<Merchant*>(target)) {
+                                m->onArrestedBy(*player);  // ייתכן שתיזרק כאן שגיאה
+                            } else {
+                                player->arrest(*target);
+                                if (auto* g = dynamic_cast<General*>(target)) {
+                                    g->onArrested();
+                                }
+                            }
+
+                            lastArrestedPlayer = target;
+                        } catch (const std::exception& e) {
+                            std::cerr << "Arrest failed: " << e.what() << "\n";
+                            continue;  // חוזר לתחילת הלולאה – אותו שחקן בוחר שוב פעולה
                         }
-                        lastArrestedPlayer = target;
+
                     }
                         else if (choice == 5) {
                         player->sanction(*target);
@@ -296,11 +305,39 @@ void Game::playTurn() {
                         if (auto* b = dynamic_cast<Baron*>(target)) b->receiveSanctionFrom(*player);
                         if (auto* j = dynamic_cast<Judge*>(target)) j->receiveSanctionFrom(*player);
                     } else if (choice == 6) {
-                        if (auto* g = dynamic_cast<General*>(target); g && g->getCoins() >= 5) {
-                            std::cout << g->getName() << " blocked the coup using 5 coins!\n";
-                            g->blockCoup(*target, *player);
-                        } else {
+                        // קודם כל מוודאים שלשחקן יש מספיק מטבעות
+                        if (player->getCoins() < 7) {
+                            std::cout << "Not enough coins to perform a coup.\n";
+                            continue;
+                        }
+
+                        // שלם את מחיר ההפיכה בכל מקרה
+                        player->removeCoins(7);
+
+                        // נבדוק אם מישהו חוסם
+                        bool blocked = false;
+
+                        for (Player* p : players) {
+                            if (!p->isActive() || p == player) continue;
+
+                            if (auto* g = dynamic_cast<General*>(p); g && g->getCoins() >= 5) {
+                                std::cout << g->getName() << ", do you want to block the coup on " << target->getName() << "? (1 = yes, 0 = no): ";
+                                int response;
+                                std::cin >> response;
+
+                                if (response == 1) {
+                                    g->blockCoup(*target, *player);  // מבצע את חסימת ההפיכה
+                                    blocked = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // אם לא נחסמה – ההפיכה מתבצעת
+                        if (!blocked) {
                             player->coup(*target);
+                        } else {
+                            std::cout << player->getName() << " paid for the coup, but it was blocked.\n";
                         }
                     } else if (choice == 9) {
                         if (auto* s = dynamic_cast<Spy*>(player)) s->spyOn(*target);
