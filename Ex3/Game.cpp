@@ -73,6 +73,10 @@ std::string Game::getWinner() const {
     throw std::runtime_error("Game is still ongoing.");
 }
 
+void Game::setCurrentTurnIndex(int index) {
+    currentTurnIndex = index;
+}
+
 
 
 
@@ -373,4 +377,25 @@ std::vector<Player*> Game::getValidTargets(Player* current) const {
         }
     }
     return targets;
+}
+
+void Game::assignRandomRoles(const std::vector<std::string>& names) {
+std::srand(static_cast<unsigned int>(time(nullptr)));
+
+    for (const std::string& name : names) {
+        int r = std::rand() % 6;  // מספר רנדומלי בין 0 ל־5
+
+        Player* player = nullptr;
+
+        switch (r) {
+            case 0: player = new Governor(name); break;
+            case 1: player = new Spy(name); break;
+            case 2: player = new Baron(name); break;
+            case 3: player = new General(name); break;
+            case 4: player = new Judge(name); break;
+            case 5: player = new Merchant(name); break;
+        }
+
+        this->addPlayer(player);  // מוסיפים את השחקן למשחק
+    }
 }

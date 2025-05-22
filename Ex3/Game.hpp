@@ -21,6 +21,8 @@ private:
 public:
     Game();
 
+    void setCurrentTurnIndex(int index);
+
     void addPlayer(Player* player);
     void nextTurn();
     Player* currentPlayer() const;
@@ -33,7 +35,11 @@ public:
     void tryBlockTax(Governor* governor);
     std::vector<Player*> getValidTargets(Player* current) const;
 
+    void assignRandomRoles(const std::vector<std::string>& names);
+
+
     const std::vector<Player*>& getPlayers() const; // לשחרור זיכרון
+    int getCurrentTurnIndex() const { return currentTurnIndex; }
 };
 
 #endif // GAME_HPP
