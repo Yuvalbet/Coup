@@ -1,7 +1,7 @@
 # קומפיילר ודגלים
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -g
-LDFLAGS = 
+LDFLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 
 # שמות קובצי ההרצה
 EXEC_MAIN = main_exec
@@ -17,7 +17,8 @@ SOURCES = \
     Roles/Baron.cpp \
     Roles/General.cpp \
     Roles/Judge.cpp \
-    Roles/Merchant.cpp
+    Roles/Merchant.cpp \
+    GameGUI.cpp
 
 # קבצי CPP של בדיקות
 TEST_SOURCES = \
@@ -38,7 +39,7 @@ all: Main
 $(EXEC_MAIN): $(SOURCES)
 	$(CXX) $(CXXFLAGS) $(SOURCES) -o $(EXEC_MAIN) $(LDFLAGS)
 
-# מטרה "Main" לפי דרישות המטלה: מריצה את הקובץ המהודר
+# מטרה "Main": מריצה את המשחק
 Main: $(EXEC_MAIN)
 	./$(EXEC_MAIN)
 
