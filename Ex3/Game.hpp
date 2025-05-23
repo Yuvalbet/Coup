@@ -29,7 +29,7 @@ public:
     std::vector<std::string> getActivePlayerNames() const;
     std::string getWinner() const;
 
-    void playTurn();
+    void playTurn(int choice, Player* target = nullptr);
 
     void tryBlockBribe(Judge* judge);
     void tryBlockTax(Governor* governor);

@@ -3,11 +3,13 @@
 #include <iostream>
 #include "Game.hpp"
 #include "Roles/Spy.hpp"
+#include "Player.hpp"
 
 
 void runGameGUI(Game& game) {
     
     sf::RenderWindow window(sf::VideoMode(1500, 1000), "Coup Game Board");
+    
 
     bool gameStarted = false;
     bool showMainGameScreen = false;
@@ -29,11 +31,21 @@ void runGameGUI(Game& game) {
     sf::Text inputText, titleText, startText, addPlayerText, playersTitle, playerNumberLabel, errorText;
     sf::RectangleShape startButton, addPlayerButton, nameInputBox;
 
+    sf::Text messageText;
+    std::string displayMessage = "";
+
+
     sf::Font font;
     if (!font.loadFromFile("/usr/share/fonts/truetype/msttcorefonts/arial.ttf")) {
         std::cerr << " Error loading font" << std::endl;
         return;
     }
+
+    messageText.setFont(font);
+    messageText.setCharacterSize(22);
+    messageText.setFillColor(sf::Color(30, 30, 120));
+    messageText.setPosition(20, 20);
+
 
     errorText.setFont(font);
     errorText.setCharacterSize(22);
@@ -138,7 +150,7 @@ void runGameGUI(Game& game) {
                 }
             } else if (choosingPlayerCount) {
                 if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-                    for (int i = 0; i < playerCountButtons.size(); ++i) {
+                    for (size_t i = 0; i < playerCountButtons.size(); ++i) {
                         if (playerCountButtons[i].getGlobalBounds().contains(sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
                             totalPlayers = i + 2;
                             choosingPlayerCount = false;
@@ -192,6 +204,10 @@ void runGameGUI(Game& game) {
                     if (startButton.getGlobalBounds().contains(mousePos)) {
                         if (playerNames.size() == totalPlayers) {
                             game.assignRandomRoles(playerNames);  // ⬅️ השורה החדשה
+                            for (Player* p : game.getPlayers()) {
+                                p->removeCoins(p->getCoins());
+                            }
+
                             gameStarted = true;
                             game.setCurrentTurnIndex(0);  // מתחילים מהשחקן הראשון
                         }
@@ -369,6 +385,24 @@ void runGameGUI(Game& game) {
 
         window.draw(card);
 
+
+       if (awaitingTarget && event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+    sf::Vector2f mousePos(event.mouseButton.x, event.mouseButton.y);
+    if (card.getGlobalBounds().contains(mousePos)) {
+        try {
+            game.playTurn(pendingAction, players[i]);
+            displayMessage = game.currentPlayer()->getName() + " performed action on " + players[i]->getName();
+            game.nextTurn();
+        } catch (const std::exception& e) {
+            displayMessage = "Error: " + std::string(e.what());
+        }
+        awaitingTarget = false;
+        pendingAction = 0;
+    }
+}
+
+
+
         // שם
         sf::Text nameText(players[i]->getName(), font, 20);
         nameText.setFillColor(sf::Color::Black);
@@ -440,53 +474,115 @@ void runGameGUI(Game& game) {
 if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
     sf::Vector2f mousePos(event.mouseButton.x, event.mouseButton.y);
 
+    // נבדוק האם נלחץ אחד מכפתורי הפעולה
     for (size_t j = 0; j < actionButtons.size(); ++j) {
         if (actionButtons[j].getGlobalBounds().contains(mousePos)) {
             std::string action = actionLabels[j];
-            Player* current = game.currentPlayer();
-            try {
-                if (action == "Gather") {
-                    current->gather();
-                    game.nextTurn();  // תור עובר מיד
-                }
-                else if (action == "Tax") {
-                    current->tax();
-                    game.nextTurn();  // תור עובר מיד
-                }
-                else if (action == "Bribe") {
-                    current->bribe();
-                    game.nextTurn();  // תור עובר מיד
-                }
-                else if (action == "Arrest") {
-                    awaitingTarget = true;
-                    pendingAction = 4;
-                }
-                else if (action == "Sanction") {
-                    awaitingTarget = true;
-                    pendingAction = 5;
-                }
-                else if (action == "Coup") {
-                    awaitingTarget = true;
-                    pendingAction = 6;
-                }
-                else if (action == "Spy Action") {
-                    Spy* spy = dynamic_cast<Spy*>(current);
-                    if (spy) {
-                        awaitingTarget = true;
-                        pendingAction = 9;
-                    }
-                }
+if (action == "Gather") pendingAction = 1;
+else if (action == "Tax") pendingAction = 2;
+else if (action == "Bribe") pendingAction = 3;
+else if (action == "Arrest") pendingAction = 4;
+else if (action == "Sanction") pendingAction = 5;
+else if (action == "Coup") pendingAction = 6;
+else if (action == "Spy Action") pendingAction = 9;
 
-            } catch (const std::exception& ex) {
-                std::cerr << "Error: " << ex.what() << std::endl;
-                // כאן אפשר להוסיף טקסט שגיאה במסך
-            }
-        }
+if (pendingAction == 1 || pendingAction == 2 || pendingAction == 3) {
+    try {
+        game.playTurn(pendingAction, nullptr);
+        displayMessage = "Action completed.";
+        game.nextTurn();
+    } catch (const std::exception& e) {
+        displayMessage = "Error: " + std::string(e.what());
     }
+    pendingAction = 0;
+} else {
+    awaitingTarget = true;
+    displayMessage = "Choose a target for " + action;
+}
+
 }
 
 
+            if (!displayMessage.empty()) {
+                messageText.setString(displayMessage);
+                window.draw(messageText);
+            }
 
+
+                
+                }
+
+                }
                 window.display();
+}
+            }
+    void handleGather(Game& game, std::string& displayMessage) {
+    Player* player = game.currentPlayer();
+    try {
+        if (player->isSanctioned()) {
+            displayMessage = player->getName() + " is sanctioned and cannot gather.";
+        } else {
+            player->gather();
+            displayMessage = player->getName() + " gathered 1 coin.";
+        }
+    } catch (const std::exception& e) {
+        displayMessage = "Error: " + std::string(e.what());
+    }
+}
+
+void handleTax(Game& game, std::string& displayMessage) {
+    Player* player = game.currentPlayer();
+    try {
+        if (player->isSanctioned()) {
+            displayMessage = player->getName() + " is sanctioned and cannot tax.";
+            return;
+        }
+
+        player->tax();
+        displayMessage = player->getName() + " received 2 coins from tax.";
+
+        for (Player* p : game.getPlayers()) {
+            if (p == player || !p->isActive()) continue;
+            if (Governor* g = dynamic_cast<Governor*>(p)) {
+                displayMessage += " Governor " + g->getName() + " may block.";
+                // כאן את יכולה בעתיד לפתוח pop-up בחירה אם רוצים לחסום
+                break;
+            }
+        }
+    } catch (const std::exception& e) {
+        displayMessage = "Error: " + std::string(e.what());
+    }
+}
+
+void handleCoup(Game& game, std::string& displayMessage, Player* target) {
+    Player* player = game.currentPlayer();
+    try {
+        if (player->getCoins() < 7) {
+            displayMessage = "Not enough coins to perform a coup.";
+            return;
+        }
+
+        player->removeCoins(7);
+        bool blocked = false;
+        for (Player* p : game.getPlayers()) {
+            if (p == player || !p->isActive()) continue;
+            if (General* g = dynamic_cast<General*>(p)) {
+                if (g->getCoins() >= 5) {
+                    // בעתיד תוסיפי חלון ששואל אם לחסום
+                    displayMessage = g->getName() + " can block the coup.";
+                    blocked = true;
+                    break;
                 }
             }
+        }
+
+        if (!blocked) {
+            player->coup(*target);
+            displayMessage = player->getName() + " performed a coup on " + target->getName();
+        } else {
+            displayMessage += " Coup was blocked.";
+        }
+    } catch (const std::exception& e) {
+        displayMessage = "Coup failed: " + std::string(e.what());
+    }
+}
