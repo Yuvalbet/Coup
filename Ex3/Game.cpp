@@ -117,6 +117,11 @@ void Game::setCurrentTurnIndex(int index) {
 
 void Game::playTurn(int choice, Player* target) {
     Player* player = currentPlayer();
+
+    if (player->getCoins() >= 10 && choice != 6) {
+        throw std::runtime_error("You have 10+ coins. You MUST perform a coup.");
+    }
+
     int extraActions = 1;
 
     while (extraActions > 0) {
@@ -141,15 +146,18 @@ void Game::playTurn(int choice, Player* target) {
             switch (choice) {
                 case 1:
                     player->gather();
+                    setLastActionMessage(player->getName() + " gathered 1 coin.");
                     break;
 
                 case 2:
                     player->tax();
+                    setLastActionMessage(player->getName() + " collected 2 coins from tax.");
                     break;
 
                 case 3:
                     player->bribe();
                     extraActions += 2;
+                    setLastActionMessage(player->getName() + " paid a bribe and received extra actions.");
                     break;
 
                 case 4:
@@ -158,23 +166,26 @@ void Game::playTurn(int choice, Player* target) {
                     if (target == lastArrestedPlayer) return;
                     player->arrest(*target);
                     lastArrestedPlayer = target;
+                    setLastActionMessage(player->getName() + " arrested " + target->getName() + ".");
                     break;
 
                 case 5:
                     if (!target) return;
                     player->sanction(*target);
                     sanctionedLastRound = target;
+                    setLastActionMessage(player->getName() + " sanctioned " + target->getName() + ".");
                     break;
 
                 case 6:
                     if (!target) return;
-                    player->removeCoins(7);
                     player->coup(*target);
+                    setLastActionMessage(player->getName() + " performed a coup on " + target->getName() + ".");
                     break;
 
                 case 8:
                     if (auto* b = dynamic_cast<Baron*>(player)) {
                         b->invest();
+                        setLastActionMessage(player->getName() + " invested using Baron power.");
                     }
                     break;
 
@@ -182,6 +193,7 @@ void Game::playTurn(int choice, Player* target) {
                     if (auto* s = dynamic_cast<Spy*>(player)) {
                         if (!target) return;
                         s->spyOn(*target);
+                        setLastActionMessage(player->getName() + " spied on " + target->getName() + ".");
                     }
                     break;
 
@@ -191,6 +203,7 @@ void Game::playTurn(int choice, Player* target) {
             }
         } catch (const std::exception& e) {
             std::cerr << "Action failed: " << e.what() << "\n";
+            setLastActionMessage("Action failed: " + std::string(e.what()));
             return;
         }
 
@@ -200,6 +213,7 @@ void Game::playTurn(int choice, Player* target) {
     player->updateArrestBlock(false);
     nextTurn();
 }
+
 
 
 std::vector<Player*> Game::getValidTargets(Player* current) const {
@@ -228,9 +242,27 @@ void Game::assignRandomRoles(const std::vector<std::string>& names) {
             case 4: player = new Judge(name); break;
             case 5: player = new Merchant(name); break;
         }
+        player->removeCoins(player->getCoins()); // 👈 אפס מיד את המטבעות
 
         this->addPlayer(player);  // ✅ נשמר לפי הסדר
+        std::cout << "[DEBUG] Added player: " << player->getName() << " @ " << player << ", coins: " << player->getCoins() << "\n";
+
     }
 
     currentTurnIndex = 0; // תמיד מתחילים מהשחקן הראשון
+
+    std::cout << "=== Players Memory Addresses ===\n";
+for (Player* p : players) {
+    std::cout << p->getName() << " @ " << p << ", coins: " << p->getCoins() << "\n";
 }
+
+
+}
+std::string Game::getLastActionMessage() const {
+    return lastActionMessage;
+}
+
+void Game::setLastActionMessage(const std::string& msg) {
+    lastActionMessage = msg;
+}
+

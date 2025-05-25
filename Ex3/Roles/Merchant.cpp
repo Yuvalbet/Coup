@@ -3,7 +3,9 @@
 
 
 
-Merchant::Merchant(const std::string& name) : Player(name) {}
+Merchant::Merchant(const std::string& name) : Player(name) {
+    this->removeCoins(this->getCoins());  // מאפס את כמות המטבעות
+}
 
 std::string Merchant::getRoleName() const {
     return "Merchant";

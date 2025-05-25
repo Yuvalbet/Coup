@@ -1,16 +1,12 @@
-#include <cmath>      // בשביל cos, sin
+#include <cmath> // בשביל cos, sin
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include "Game.hpp"
 #include "Roles/Spy.hpp"
 #include "Player.hpp"
 
-
 void runGameGUI(Game& game) {
-    
     sf::RenderWindow window(sf::VideoMode(1500, 1000), "Coup Game Board");
-    
-
     bool gameStarted = false;
     bool showMainGameScreen = false;
     bool onStartScreen = true;
@@ -20,40 +16,34 @@ void runGameGUI(Game& game) {
     bool isInputActive = false;
     bool awaitingTarget = false;
     int pendingAction = 0; // 4 = Arrest, 5 = Sanction, 6 = Coup, 9 = Spy
-
     
     std::vector<sf::RectangleShape> actionButtons;
     std::vector<std::string> actionLabels;
-
     std::vector<std::string> playerNames;
     std::string currentInput = "";
-
+    
     sf::Text inputText, titleText, startText, addPlayerText, playersTitle, playerNumberLabel, errorText;
     sf::RectangleShape startButton, addPlayerButton, nameInputBox;
-
     sf::Text messageText;
     std::string displayMessage = "";
-
-
+    
     sf::Font font;
     if (!font.loadFromFile("/usr/share/fonts/truetype/msttcorefonts/arial.ttf")) {
         std::cerr << " Error loading font" << std::endl;
         return;
     }
-
+    
     messageText.setFont(font);
     messageText.setCharacterSize(22);
     messageText.setFillColor(sf::Color(30, 30, 120));
     messageText.setPosition(20, 20);
-
-
+    
     errorText.setFont(font);
     errorText.setCharacterSize(22);
     errorText.setFillColor(sf::Color::Red);
-    errorText.setPosition(window.getSize().x / 2 - 200, 430); // מתחת לכפתור Add Player
-    errorText.setString(""); // מתחיל ריק
-
-
+    errorText.setPosition(window.getSize().x / 2 - 200, 430);
+    errorText.setString("");
+    
     titleText.setFont(font);
     titleText.setString("The Coup Game");
     titleText.setCharacterSize(56);
@@ -61,29 +51,29 @@ void runGameGUI(Game& game) {
     sf::FloatRect titleBounds = titleText.getLocalBounds();
     titleText.setOrigin(titleBounds.width / 2, titleBounds.height / 2);
     titleText.setPosition(window.getSize().x / 2, 80);
-
+    
     playersTitle.setFont(font);
     playersTitle.setString("Players:");
     playersTitle.setCharacterSize(32);
     playersTitle.setFillColor(sf::Color(80, 60, 150));
     playersTitle.setPosition(window.getSize().x / 2 - 200, 200);
-
+    
     playerNumberLabel.setFont(font);
     playerNumberLabel.setCharacterSize(24);
     playerNumberLabel.setFillColor(sf::Color(50, 50, 50));
     playerNumberLabel.setPosition(window.getSize().x / 2 - 200, 260);
-
+    
     nameInputBox.setSize(sf::Vector2f(400, 50));
     nameInputBox.setFillColor(sf::Color(235, 245, 250));
     nameInputBox.setOutlineColor(sf::Color(160, 160, 200));
     nameInputBox.setOutlineThickness(3);
     nameInputBox.setPosition(window.getSize().x / 2 - 200, 300);
-
+    
     inputText.setFont(font);
     inputText.setCharacterSize(30);
     inputText.setFillColor(sf::Color(70, 70, 70));
     inputText.setPosition(nameInputBox.getPosition().x + 10, nameInputBox.getPosition().y + 10);
-
+    
     addPlayerButton.setSize(sf::Vector2f(200, 50));
     addPlayerButton.setFillColor(sf::Color(180, 220, 200));
     addPlayerButton.setOutlineColor(sf::Color(100, 100, 100));
@@ -97,13 +87,13 @@ void runGameGUI(Game& game) {
     sf::FloatRect apTextBounds = addPlayerText.getLocalBounds();
     addPlayerText.setOrigin(apTextBounds.width / 2, apTextBounds.height / 2);
     addPlayerText.setPosition(addPlayerButton.getPosition().x + 100, addPlayerButton.getPosition().y + 25);
-
+    
     startButton.setSize(sf::Vector2f(260, 60));
-    startButton.setFillColor(sf::Color(180, 230, 200));  // Light green
+    startButton.setFillColor(sf::Color(180, 230, 200));
     startButton.setOutlineColor(sf::Color(100, 100, 100));
     startButton.setOutlineThickness(2);
     startButton.setPosition(window.getSize().x / 2 - 130, 580);
-
+    
     startText.setFont(font);
     startText.setString("Start Game");
     startText.setCharacterSize(26);
@@ -111,10 +101,10 @@ void runGameGUI(Game& game) {
     sf::FloatRect textBounds = startText.getLocalBounds();
     startText.setOrigin(textBounds.width / 2, textBounds.height / 2);
     startText.setPosition(window.getSize().x / 2, 610);
-
+    
     std::vector<sf::RectangleShape> playerCountButtons;
     std::vector<sf::Text> playerCountTexts;
-
+    
     for (int i = 2; i <= 6; ++i) {
         sf::RectangleShape button(sf::Vector2f(60, 60));
         button.setFillColor(sf::Color(200, 220, 250));
@@ -122,7 +112,7 @@ void runGameGUI(Game& game) {
         button.setOutlineThickness(2);
         button.setPosition(350 + (i - 2) * 100, 250);
         playerCountButtons.push_back(button);
-
+        
         sf::Text text;
         text.setFont(font);
         text.setString(std::to_string(i));
@@ -133,14 +123,13 @@ void runGameGUI(Game& game) {
         text.setPosition(button.getPosition().x + 30, button.getPosition().y + 30);
         playerCountTexts.push_back(text);
     }
-
+    
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
-
-
+            
             if (onStartScreen) {
                 if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
                     if (startButton.getGlobalBounds().contains(sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
@@ -171,9 +160,10 @@ void runGameGUI(Game& game) {
                         inputText.setString(currentInput);
                     }
                 }
-
+                
                 if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
                     sf::Vector2f mousePos(event.mouseButton.x, event.mouseButton.y);
+                    
                     if (addPlayerButton.getGlobalBounds().contains(mousePos)) {
                         if (!currentInput.empty() && playerNames.size() < totalPlayers) {
                             bool alreadyExists = false;
@@ -183,63 +173,164 @@ void runGameGUI(Game& game) {
                                     break;
                                 }
                             }
-
+                            
                             if (alreadyExists) {
                                 errorText.setString("Name already exists. Please choose a different name.");
                             } else {
                                 playerNames.push_back(currentInput);
                                 currentInput.clear();
                                 inputText.setString("");
-                                errorText.setString(""); // מנקה את השגיאה אם הייתה
+                                errorText.setString("");
                             }
                         }
-
                     }
+                    
                     if (nameInputBox.getGlobalBounds().contains(sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
                         isInputActive = true;
                     } else {
                         isInputActive = false;
                     }
-
+                    
                     if (startButton.getGlobalBounds().contains(mousePos)) {
                         if (playerNames.size() == totalPlayers) {
-                            game.assignRandomRoles(playerNames);  // ⬅️ השורה החדשה
+                            game.assignRandomRoles(playerNames);
                             for (Player* p : game.getPlayers()) {
-                                p->removeCoins(p->getCoins());
+                                while (p->getCoins() > 0)
+                                    p->removeCoins(1);
                             }
-
                             gameStarted = true;
-                            game.setCurrentTurnIndex(0);  // מתחילים מהשחקן הראשון
+                            game.setCurrentTurnIndex(0);
                         }
                     }
-
                 }
             }
-
-          else if (gameStarted && !showMainGameScreen) {
-    if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-        sf::Vector2f mousePos(event.mouseButton.x, event.mouseButton.y);
-
-        float y = 180 + game.getPlayers().size() * 60; // ← תואם לגובה 50 + ריווח 10
-
-        sf::FloatRect startTurnBounds(
-            window.getSize().x / 2 - 150,
-            y + 40,
-            300,
-            70
-        );
-
-        if (startTurnBounds.contains(mousePos)) {
-            showMainGameScreen = true;
+            else if (gameStarted && !showMainGameScreen) {
+                if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+                    sf::Vector2f mousePos(event.mouseButton.x, event.mouseButton.y);
+                    float y = 180 + game.getPlayers().size() * 60;
+                    
+                    sf::FloatRect startTurnBounds(
+                        window.getSize().x / 2 - 150,
+                        y + 40,
+                        300,
+                        70
+                    );
+                    
+                    if (startTurnBounds.contains(mousePos)) {
+                        showMainGameScreen = true;
+                    }
+                }
+            }
+            // FIXED: Move the main game screen event handling here, OUTSIDE the drawing loop
+            else if (gameStarted && showMainGameScreen) {
+                if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+                    sf::Vector2f mousePos(event.mouseButton.x, event.mouseButton.y);
+                    
+                    // If awaiting target selection
+                    if (awaitingTarget) {
+                        // Check if clicking on a player card to select as target
+                        sf::Vector2f center(window.getSize().x / 2, window.getSize().y / 2);
+                        float radius = 300.0f;
+                        const std::vector<Player*>& players = game.getPlayers();
+                        size_t playerCount = players.size();
+                        
+                        int indexOnCircle = 0;
+                        for (size_t j = 0; j < players.size(); ++j) {
+                            Player* player = players[j];
+                            if (!player->isActive()) continue;
+                            
+                            // Skip current player for target selection
+                            if (j == game.getCurrentTurnIndex()) {
+                                indexOnCircle++;
+                                continue;
+                            }
+                            
+                            float angle = 2 * M_PI * indexOnCircle / static_cast<float>(playerCount);
+                            float x = center.x + radius * std::cos(angle);
+                            float y = center.y + radius * std::sin(angle);
+                            indexOnCircle++;
+                            
+                            sf::FloatRect playerCard(x - 75, y - 30, 150, 60);
+                            if (playerCard.contains(mousePos)) {
+                                Player* current = game.currentPlayer();
+                                try {
+                                    if (pendingAction == 4) { // Arrest
+                                        game.playTurn(4, player);
+                                        displayMessage = game.getLastActionMessage();
+                                        
+                                    } else if (pendingAction == 5) { // Sanction
+                                        game.playTurn(5, player);
+                                        displayMessage = game.getLastActionMessage();
+                                        
+                                    } else if (pendingAction == 6) { // Coup
+                                        game.playTurn(6, player);
+                                        displayMessage = game.getLastActionMessage();
+                                        
+                                    } else if (pendingAction == 9) { // Spy Action
+                                        if (Spy* spy = dynamic_cast<Spy*>(current)) {
+                                            spy->spyOn(*player);
+                                            displayMessage = current->getName() + " used spy action on " + player->getName();
+                                        }
+                                        
+                                    }
+                                } catch (const std::exception& e) {
+                                    displayMessage = "Error: " + std::string(e.what());
+                                }
+                                awaitingTarget = false;
+                                pendingAction = 0;
+                                break;
+                            }
+                        }
+                    } else {
+                        // Check if clicking on action buttons
+                        for (size_t i = 0; i < actionButtons.size(); ++i) {
+                            if (actionButtons[i].getGlobalBounds().contains(mousePos)) {
+                                std::string action = actionLabels[i];
+                                Player* current = game.currentPlayer();
+                                
+                                try {
+                                    if (action == "Gather") {
+                                        game.playTurn(1);
+                                        displayMessage = game.getLastActionMessage();
+                                       
+                                    } else if (action == "Tax") {
+                                        game.playTurn(2);
+                                        displayMessage = game.getLastActionMessage();
+                                        
+                                    } else if (action == "Bribe") {
+                                        game.playTurn(3);
+                                        displayMessage = game.getLastActionMessage();
+                                        
+                                    } else if (action == "Arrest") {
+                                        pendingAction = 4;
+                                        awaitingTarget = true;
+                                        displayMessage = "Choose a target to arrest.";
+                                    } else if (action == "Sanction") {
+                                        pendingAction = 5;
+                                        awaitingTarget = true;
+                                        displayMessage = "Choose a target to sanction.";
+                                    } else if (action == "Coup") {
+                                        pendingAction = 6;
+                                        awaitingTarget = true;
+                                        displayMessage = "Choose a target to coup.";
+                                    } else if (action == "Spy Action") {
+                                        pendingAction = 9;
+                                        awaitingTarget = true;
+                                        displayMessage = "Choose a target to spy on.";
+                                    }
+                                } catch (const std::exception& e) {
+                                    displayMessage = "Error: " + std::string(e.what());
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
         }
-    }
-}
-
-
-        }
-
+        
         window.clear(sf::Color(230, 230, 240));
-
+        
         if (onStartScreen) {
             window.draw(titleText);
             window.draw(startButton);
@@ -249,33 +340,37 @@ void runGameGUI(Game& game) {
             chooseText.setFillColor(sf::Color(60, 60, 60));
             sf::FloatRect ctBounds = chooseText.getLocalBounds();
             chooseText.setOrigin(ctBounds.width / 2, ctBounds.height / 2);
-        
+            
             sf::RectangleShape panel(sf::Vector2f(600, 300));
             panel.setFillColor(sf::Color(230, 240, 250));
             panel.setOutlineColor(sf::Color(180, 180, 200));
             panel.setOutlineThickness(3);
             panel.setPosition(window.getSize().x / 2 - 300, 120);
+            
             window.draw(panel);
-
             chooseText.setPosition(window.getSize().x / 2, 210);
             window.draw(chooseText);
+            
             for (const auto& b : playerCountButtons) window.draw(b);
             for (const auto& t : playerCountTexts) window.draw(t);
+            
         } else if (enteringNames && !gameStarted) {
             window.draw(titleText);
             window.draw(playersTitle);
             window.draw(playerNumberLabel);
             window.draw(nameInputBox);
+            
             sf::Text displayText = inputText;
             if (isInputActive)
                 displayText.setString(currentInput + "|");
             else
                 displayText.setString(currentInput);
-                window.draw(displayText);
-                window.draw(addPlayerButton);
-                window.draw(errorText);
-                window.draw(addPlayerText);
-
+            window.draw(displayText);
+            
+            window.draw(addPlayerButton);
+            window.draw(errorText);
+            window.draw(addPlayerText);
+            
             float y = 460;
             for (const std::string& name : playerNames) {
                 sf::Text nameText(name, font, 26);
@@ -284,20 +379,16 @@ void runGameGUI(Game& game) {
                 window.draw(nameText);
                 y += 30;
             }
-
+            
             if (playerNames.size() == totalPlayers) {
-                // מקם את הכפתור אחרי השם האחרון
                 startButton.setPosition(window.getSize().x / 2 - 130, y + 20);
-                startText.setPosition(window.getSize().x / 2, y + 20 + 30); // מיקום טקסט על הכפתור
-
+                startText.setPosition(window.getSize().x / 2, y + 20 + 30);
                 window.draw(startButton);
                 window.draw(startText);
             }
-
-        }else if (gameStarted && !showMainGameScreen) {
+        } else if (gameStarted && !showMainGameScreen) {
             window.clear(sf::Color(240, 245, 250));
-
-
+            
             sf::Text title("Players and Roles", font, 46);
             title.setFillColor(sf::Color(40, 40, 90));
             title.setStyle(sf::Text::Bold | sf::Text::Underlined);
@@ -305,7 +396,7 @@ void runGameGUI(Game& game) {
             title.setOrigin(titleBounds.width / 2, titleBounds.height / 2);
             title.setPosition(window.getSize().x / 2, 80);
             window.draw(title);
-
+            
             float y = 180;
             for (Player* p : game.getPlayers()) {
                 sf::RectangleShape card(sf::Vector2f(600, 50));
@@ -314,275 +405,151 @@ void runGameGUI(Game& game) {
                 card.setOutlineThickness(2);
                 card.setPosition(window.getSize().x / 2 - 300, y);
                 window.draw(card);
-
+                
                 sf::Text nameText(p->getName(), font, 26);
                 nameText.setFillColor(sf::Color(50, 50, 50));
                 nameText.setPosition(card.getPosition().x + 20, y + 15);
                 window.draw(nameText);
-
+                
                 sf::Text roleText(p->getRoleName(), font, 26);
                 roleText.setFillColor(sf::Color(80, 50, 120));
                 sf::FloatRect roleBounds = roleText.getLocalBounds();
                 roleText.setOrigin(roleBounds.width, 0);
                 roleText.setPosition(card.getPosition().x + 580, y + 15);
                 window.draw(roleText);
-
+                
                 y += 60;
-
+            }
+            
+            sf::RectangleShape startTurnButton(sf::Vector2f(300, 70));
+            startTurnButton.setFillColor(sf::Color(180, 230, 200));
+            startTurnButton.setOutlineColor(sf::Color(100, 100, 100));
+            startTurnButton.setOutlineThickness(2);
+            startTurnButton.setPosition(window.getSize().x / 2 - 150, y + 40);
+            window.draw(startTurnButton);
+            
+            sf::Text startTurnText("Start", font, 30);
+            startTurnText.setFillColor(sf::Color::Black);
+            sf::FloatRect stBounds = startTurnText.getLocalBounds();
+            startTurnText.setOrigin(stBounds.width / 2, stBounds.height / 2);
+            startTurnText.setPosition(startTurnButton.getPosition().x + 150, startTurnButton.getPosition().y + 35);
+            window.draw(startTurnText);
+            
+        } else if (gameStarted && showMainGameScreen) {
+            window.clear(sf::Color(230, 240, 250));
+            
+            sf::Vector2f center(window.getSize().x / 2, window.getSize().y / 2);
+            float radius = 300.0f;
+            
+            const std::vector<Player*>& players = game.getPlayers();
+            size_t playerCount = players.size();
+            
+            sf::CircleShape tableCircle(radius);
+            tableCircle.setFillColor(sf::Color(200, 220, 240));
+            tableCircle.setOrigin(radius, radius);
+            tableCircle.setPosition(center);
+            window.draw(tableCircle);
+            
+            int indexOnCircle = 0;
+            for (size_t j = 0; j < players.size(); ++j) {
+                Player* player = players[j];
+                if (!player->isActive()) continue;
+                
+                float angle = 2 * M_PI * indexOnCircle / static_cast<float>(playerCount);
+                float x = center.x + radius * std::cos(angle);
+                float y = center.y + radius * std::sin(angle);
+                indexOnCircle++;
+                
+                sf::RectangleShape card(sf::Vector2f(150, 60));
+                card.setFillColor(j == game.getCurrentTurnIndex() ? sf::Color(180, 255, 180) : sf::Color::White);
+                card.setOutlineColor(sf::Color::Black);
+                card.setOutlineThickness(2);
+                card.setOrigin(75, 30);
+                card.setPosition(x, y);
+                window.draw(card);
+                
+                sf::Text nameText(player->getName(), font, 20);
+                nameText.setFillColor(sf::Color::Black);
+                nameText.setOrigin(nameText.getLocalBounds().width / 2, nameText.getLocalBounds().height / 2);
+                nameText.setPosition(x, y - 10);
+                window.draw(nameText);
+                
+                sf::Text roleText(player->getRoleName(), font, 16);
+                roleText.setFillColor(sf::Color(100, 100, 160));
+                roleText.setOrigin(roleText.getLocalBounds().width / 2, roleText.getLocalBounds().height / 2);
+                roleText.setPosition(x, y + 15);
+                window.draw(roleText);
+                
+                sf::Text coinsText("Coins: " + std::to_string(player->getCoins()), font, 16);
+                coinsText.setFillColor(sf::Color(120, 90, 20));
+                coinsText.setOrigin(coinsText.getLocalBounds().width / 2, coinsText.getLocalBounds().height / 2);
+                coinsText.setPosition(x, y + 35);
+                window.draw(coinsText);
                 
             }
-
-    sf::RectangleShape startTurnButton(sf::Vector2f(300, 70));
-    startTurnButton.setFillColor(sf::Color(180, 230, 200));
-    startTurnButton.setOutlineColor(sf::Color(100, 100, 100));
-    startTurnButton.setOutlineThickness(2);
-    startTurnButton.setPosition(window.getSize().x / 2 - 150, y + 40); // יושב קצת יותר גבוה שלא ייחתך
-    window.draw(startTurnButton);
-
-    sf::Text startTurnText("Start", font, 30);
-    startTurnText.setFillColor(sf::Color::Black);
-    sf::FloatRect stBounds = startTurnText.getLocalBounds();
-    startTurnText.setOrigin(stBounds.width / 2, stBounds.height / 2);
-    startTurnText.setPosition(startTurnButton.getPosition().x + 150, startTurnButton.getPosition().y + 35);
-    window.draw(startTurnText);
-
-    
-
-} else if (gameStarted && showMainGameScreen) {
-    
-        window.clear(sf::Color(230, 240, 250));
-
-        sf::Vector2f center(window.getSize().x / 2, window.getSize().y / 2);
-        float radius = 300.0f;
-
-        const std::vector<Player*>& players = game.getPlayers();
-        size_t playerCount = players.size();
-
-        sf::CircleShape tableCircle(radius);
-        tableCircle.setFillColor(sf::Color(200, 220, 240));
-        tableCircle.setOrigin(radius, radius);
-        tableCircle.setPosition(center);
-        window.draw(tableCircle);
-
-       for (size_t i = 0; i < playerCount; ++i) {
-        float angle = 2 * M_PI * i / playerCount;
-        float x = center.x + radius * std::cos(angle);
-        float y = center.y + radius * std::sin(angle);
-
-        // כרטיס שחקן
-        sf::RectangleShape card(sf::Vector2f(150, 60));
-        card.setFillColor(sf::Color::White);
-        card.setOutlineColor(sf::Color::Black);
-        card.setOutlineThickness(2);
-        card.setOrigin(75, 30);
-        card.setPosition(x, y);
             
-        if (i == game.getCurrentTurnIndex()) {
-            card.setFillColor(sf::Color(180, 255, 180));  // ירוק בהיר לשחקן בתורו
-        } else {
-            card.setFillColor(sf::Color::White);
-        }
-
-        window.draw(card);
-
-
-       if (awaitingTarget && event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-    sf::Vector2f mousePos(event.mouseButton.x, event.mouseButton.y);
-    if (card.getGlobalBounds().contains(mousePos)) {
-        try {
-            game.playTurn(pendingAction, players[i]);
-            displayMessage = game.currentPlayer()->getName() + " performed action on " + players[i]->getName();
-            game.nextTurn();
-        } catch (const std::exception& e) {
-            displayMessage = "Error: " + std::string(e.what());
-        }
-        awaitingTarget = false;
-        pendingAction = 0;
-    }
-}
-
-
-
-        // שם
-        sf::Text nameText(players[i]->getName(), font, 20);
-        nameText.setFillColor(sf::Color::Black);
-        nameText.setOrigin(nameText.getLocalBounds().width / 2, nameText.getLocalBounds().height / 2);
-        nameText.setPosition(x, y - 10);
-        window.draw(nameText);
-
-        // תפקיד
-        sf::Text roleText(players[i]->getRoleName(), font, 16);
-        roleText.setFillColor(sf::Color(100, 100, 160));
-        roleText.setOrigin(roleText.getLocalBounds().width / 2, roleText.getLocalBounds().height / 2);
-        roleText.setPosition(x, y + 15);
-        window.draw(roleText);
-
-        // רק לשחקן שתורו נציג כפתורי פעולות
-        if (i == game.getCurrentTurnIndex()) {
-            Player* current = players[i];
-
-            // מציג את שם השחקן ומספר המטבעות
-            std::string infoText = "Turn: " + current->getName() + " | Coins: " + std::to_string(current->getCoins());
-            sf::Text info(infoText, font, 22);
-            info.setFillColor(sf::Color(40, 40, 40));
-            info.setPosition(window.getSize().x - 400, 100);  // בצד ימין למעלה
-            window.draw(info);
-
-            std::vector<std::string> actions = {"Gather", "Tax", "Bribe", "Arrest", "Sanction", "Coup"};
-
-            std::string role = current->getRoleName();
-
-        
-            // אל תוסיף כאן פעולות כמו "Block Coup" או "Block Tax" — הן יופעלו בזמן אמת מתוך Game.cpp
-
-            if (role == "Spy") actions.push_back("Spy Action");
-            
-
-            actionButtons.clear();
-            actionLabels.clear();
-
-            float bx = window.getSize().x - 220;
-            float by = 150;
-            for (const std::string& act : actions) {
-                sf::RectangleShape btn(sf::Vector2f(180, 40));
-                btn.setFillColor(sf::Color(255, 255, 200));
-                btn.setOutlineColor(sf::Color::Black);
-                btn.setOutlineThickness(2);
-                btn.setPosition(bx, by);
-
-                actionButtons.push_back(btn);
-                actionLabels.push_back(act);
-
-                window.draw(btn);
-
-                sf::Text text(act, font, 18);
-                text.setFillColor(sf::Color::Black);
-                text.setPosition(bx + 10, by + 7);
-                window.draw(text);
-
-                by += 50;
-            }
-
+            // Draw current player info and action buttons (outside the player loop)
+            Player* currentPlayer = game.currentPlayer();
+            if (currentPlayer) {
+                std::string infoText = "Turn: " + currentPlayer->getName() + " | Coins: " + std::to_string(currentPlayer->getCoins());
+                if (awaitingTarget) {
+                    infoText += " | " + displayMessage;
+                }
+                sf::Text info(infoText, font, 22);
+                info.setFillColor(sf::Color(40, 40, 40));
+                info.setPosition(window.getSize().x - 500, 50);
+                window.draw(info);
+                
+                // Only show action buttons if not awaiting target selection
+                if (!awaitingTarget) {
+                    std::vector<std::string> actions;
+                    if (currentPlayer->getCoins() >= 10) {
+                        actions.push_back("Coup");
+                    } else {
+                        actions = {"Gather", "Tax", "Bribe", "Arrest", "Sanction", "Coup"};
                     }
-
-
-                
+                    
+                    std::string role = currentPlayer->getRoleName();
+                    if (role == "Spy") actions.push_back("Spy Action");
+                    
+                    actionButtons.clear();
+                    actionLabels.clear();
+                    
+                    float bx = window.getSize().x - 220;
+                    float by = 100;
+                    
+                    for (const std::string& act : actions) {
+                        sf::RectangleShape btn(sf::Vector2f(180, 40));
+                        btn.setFillColor(sf::Color(255, 255, 200));
+                        btn.setOutlineColor(sf::Color::Black);
+                        btn.setOutlineThickness(2);
+                        btn.setPosition(bx, by);
+                        actionButtons.push_back(btn);
+                        actionLabels.push_back(act);
+                        window.draw(btn);
+                        
+                        sf::Text text(act, font, 18);
+                        text.setFillColor(sf::Color::Black);
+                        text.setPosition(bx + 10, by + 7);
+                        window.draw(text);
+                        
+                        by += 50;
+                    }
+                } else {
+                    // Show instruction when awaiting target
+                    sf::Text instruction("Click on a player to select as target", font, 20);
+                    instruction.setFillColor(sf::Color(200, 50, 50));
+                    instruction.setPosition(window.getSize().x - 400, 120);
+                    window.draw(instruction);
                 }
-
-                }
-              // ✅ תוספת חדשה (צעד 2) - חיבור כפתורי הפעולה למימושים האמיתיים
-if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-    sf::Vector2f mousePos(event.mouseButton.x, event.mouseButton.y);
-
-    // נבדוק האם נלחץ אחד מכפתורי הפעולה
-    for (size_t j = 0; j < actionButtons.size(); ++j) {
-        if (actionButtons[j].getGlobalBounds().contains(mousePos)) {
-            std::string action = actionLabels[j];
-if (action == "Gather") pendingAction = 1;
-else if (action == "Tax") pendingAction = 2;
-else if (action == "Bribe") pendingAction = 3;
-else if (action == "Arrest") pendingAction = 4;
-else if (action == "Sanction") pendingAction = 5;
-else if (action == "Coup") pendingAction = 6;
-else if (action == "Spy Action") pendingAction = 9;
-
-if (pendingAction == 1 || pendingAction == 2 || pendingAction == 3) {
-    try {
-        game.playTurn(pendingAction, nullptr);
-        displayMessage = "Action completed.";
-        game.nextTurn();
-    } catch (const std::exception& e) {
-        displayMessage = "Error: " + std::string(e.what());
-    }
-    pendingAction = 0;
-} else {
-    awaitingTarget = true;
-    displayMessage = "Choose a target for " + action;
-}
-
-}
-
-
+            }
+            
             if (!displayMessage.empty()) {
                 messageText.setString(displayMessage);
                 window.draw(messageText);
             }
-
-
-                
-                }
-
-                }
-                window.display();
-}
-            }
-    void handleGather(Game& game, std::string& displayMessage) {
-    Player* player = game.currentPlayer();
-    try {
-        if (player->isSanctioned()) {
-            displayMessage = player->getName() + " is sanctioned and cannot gather.";
-        } else {
-            player->gather();
-            displayMessage = player->getName() + " gathered 1 coin.";
         }
-    } catch (const std::exception& e) {
-        displayMessage = "Error: " + std::string(e.what());
-    }
-}
-
-void handleTax(Game& game, std::string& displayMessage) {
-    Player* player = game.currentPlayer();
-    try {
-        if (player->isSanctioned()) {
-            displayMessage = player->getName() + " is sanctioned and cannot tax.";
-            return;
-        }
-
-        player->tax();
-        displayMessage = player->getName() + " received 2 coins from tax.";
-
-        for (Player* p : game.getPlayers()) {
-            if (p == player || !p->isActive()) continue;
-            if (Governor* g = dynamic_cast<Governor*>(p)) {
-                displayMessage += " Governor " + g->getName() + " may block.";
-                // כאן את יכולה בעתיד לפתוח pop-up בחירה אם רוצים לחסום
-                break;
-            }
-        }
-    } catch (const std::exception& e) {
-        displayMessage = "Error: " + std::string(e.what());
-    }
-}
-
-void handleCoup(Game& game, std::string& displayMessage, Player* target) {
-    Player* player = game.currentPlayer();
-    try {
-        if (player->getCoins() < 7) {
-            displayMessage = "Not enough coins to perform a coup.";
-            return;
-        }
-
-        player->removeCoins(7);
-        bool blocked = false;
-        for (Player* p : game.getPlayers()) {
-            if (p == player || !p->isActive()) continue;
-            if (General* g = dynamic_cast<General*>(p)) {
-                if (g->getCoins() >= 5) {
-                    // בעתיד תוסיפי חלון ששואל אם לחסום
-                    displayMessage = g->getName() + " can block the coup.";
-                    blocked = true;
-                    break;
-                }
-            }
-        }
-
-        if (!blocked) {
-            player->coup(*target);
-            displayMessage = player->getName() + " performed a coup on " + target->getName();
-        } else {
-            displayMessage += " Coup was blocked.";
-        }
-    } catch (const std::exception& e) {
-        displayMessage = "Coup failed: " + std::string(e.what());
+        
+        window.display();
     }
 }

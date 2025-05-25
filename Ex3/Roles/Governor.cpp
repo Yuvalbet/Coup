@@ -2,7 +2,9 @@
 #include <iostream>
 
 
-Governor::Governor(const std::string& name) : Player(name) {}
+Governor::Governor(const std::string& name) : Player(name) {
+    this->removeCoins(this->getCoins());  // מאפס את כמות המטבעות
+}
 
 std::string Governor::getRoleName() const {
     return "Governor";

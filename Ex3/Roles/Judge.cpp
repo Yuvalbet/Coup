@@ -2,7 +2,9 @@
 #include <iostream> 
 
 
-Judge::Judge(const std::string& name) : Player(name) {}
+Judge::Judge(const std::string& name) : Player(name) {
+    this->removeCoins(this->getCoins());  // מאפס את כמות המטבעות
+}
 
 std::string Judge::getRoleName() const {
     return "Judge";

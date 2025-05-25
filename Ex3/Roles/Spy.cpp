@@ -2,8 +2,9 @@
 #include <iostream>
 
 
-Spy::Spy(const std::string& name) : Player(name) {}
-
+Spy::Spy(const std::string& name) : Player(name) {
+    this->removeCoins(this->getCoins());  // מאפס את כמות המטבעות
+    }
 std::string Spy::getRoleName() const {
     return "Spy";
 }

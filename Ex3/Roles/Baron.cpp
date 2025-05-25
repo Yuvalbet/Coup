@@ -2,7 +2,9 @@
 #include <iostream>
 
 
-Baron::Baron(const std::string& name) : Player(name) {}
+Baron::Baron(const std::string& name) : Player(name) {
+    this->removeCoins(this->getCoins());  // מאפס את כמות המטבעות
+}
 
 std::string Baron::getRoleName() const {
     return "Baron";

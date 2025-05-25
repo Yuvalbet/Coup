@@ -2,7 +2,9 @@
 #include <iostream>
 
 
-General::General(const std::string& name) : Player(name) {}
+General::General(const std::string& name) : Player(name) {
+    this->removeCoins(this->getCoins());  // מאפס את כמות המטבעות
+}
 
 std::string General::getRoleName() const {
     return "General";

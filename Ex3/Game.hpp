@@ -17,6 +17,8 @@ private:
     int currentTurnIndex;
     Player* sanctionedLastRound = nullptr;
     Player* lastArrestedPlayer;
+    std::string lastActionMessage;
+
 
 public:
     Game();
@@ -40,6 +42,9 @@ public:
 
     const std::vector<Player*>& getPlayers() const; // לשחרור זיכרון
     int getCurrentTurnIndex() const { return currentTurnIndex; }
+    std::string getLastActionMessage() const;
+    void setLastActionMessage(const std::string& msg);
+
 };
 
 #endif // GAME_HPP

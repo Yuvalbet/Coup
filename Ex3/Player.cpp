@@ -70,6 +70,8 @@ void Player::gather() {
     }
     addCoins(1);
     std::cout << name << " gathered 1 coin.\n";
+     std::cout << "[DEBUG] " << name << " now has " << coins << " coins.\n";
+
 }
 
 void Player::tax() {
