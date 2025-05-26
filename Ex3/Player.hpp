@@ -39,6 +39,8 @@ public:
 
     // תפקיד (מוחזר במחלקות יורשות)
     virtual std::string getRoleName() const = 0;
+    virtual void receiveSanctionFrom(Player& attacker);  // מוסיף תגובה ייחודית ל־sanction
+
 
     // פעולות (ניתנות לשכתוב בתפקידים)
     virtual void gather();                      // איסוף מטבע אחד

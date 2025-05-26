@@ -262,11 +262,71 @@ void runGameGUI(Game& game) {
                                         game.playTurn(5, player);
                                         displayMessage = game.getLastActionMessage();
                                         
-                                    } else if (pendingAction == 6) { // Coup
-                                        game.playTurn(6, player);
-                                        displayMessage = game.getLastActionMessage();
-                                        
-                                    } else if (pendingAction == 9) { // Spy Action
+                                    } if (pendingAction == 6) { // Coup
+                                        Player* performer = game.currentPlayer();
+                                        Player* target = player;
+                                        bool blocked = false;
+
+                                        for (Player* p : game.getPlayers()) {
+                                            if (p == performer || !p->isActive()) continue;
+                                            if (General* general = dynamic_cast<General*>(p)) {
+                                                sf::RenderWindow popup(sf::VideoMode(400, 200), "Block Coup?");
+                                                sf::Text msg("Block coup of " + performer->getName() + " on " + target->getName() + "?", font, 22);
+                                                msg.setPosition(30, 50);
+                                                msg.setFillColor(sf::Color(50, 50, 120));
+
+                                                sf::RectangleShape yesBtn(sf::Vector2f(100, 40));
+                                                yesBtn.setPosition(70, 120);
+                                                yesBtn.setFillColor(sf::Color(180, 240, 200));
+
+                                                sf::RectangleShape noBtn(sf::Vector2f(100, 40));
+                                                noBtn.setPosition(230, 120);
+                                                noBtn.setFillColor(sf::Color(250, 180, 180));
+
+                                                sf::Text yesText("Yes", font, 20);
+                                                yesText.setPosition(100, 125);
+                                                yesText.setFillColor(sf::Color::Black);
+
+                                                sf::Text noText("No", font, 20);
+                                                noText.setPosition(260, 125);
+                                                noText.setFillColor(sf::Color::Black);
+
+                                                while (popup.isOpen()) {
+                                                    sf::Event pe;
+                                                    while (popup.pollEvent(pe)) {
+                                                        if (pe.type == sf::Event::Closed) popup.close();
+                                                        if (pe.type == sf::Event::MouseButtonPressed) {
+                                                            sf::Vector2f mPos(pe.mouseButton.x, pe.mouseButton.y);
+                                                            if (yesBtn.getGlobalBounds().contains(mPos)) {
+                                                                game.tryBlockCoup(general);
+                                                                displayMessage = general->getName() + " blocked the coup!";
+                                                                blocked = true;
+                                                                popup.close();
+                                                            } else if (noBtn.getGlobalBounds().contains(mPos)) {
+                                                                popup.close();
+                                                            }
+                                                        }
+                                                    }
+                                                    popup.clear(sf::Color(240, 240, 250));
+                                                    popup.draw(msg);
+                                                    popup.draw(yesBtn); popup.draw(noBtn);
+                                                    popup.draw(yesText); popup.draw(noText);
+                                                    popup.display();
+                                                }
+                                                break;
+                                            }
+                                        }
+
+                                        if (!blocked) {
+                                            game.playTurn(6, target);
+                                            displayMessage = game.getLastActionMessage();
+                                        }
+
+                                        awaitingTarget = false;
+                                        pendingAction = 0;
+                                        break;
+                                    }
+                                    else if (pendingAction == 9) { // Spy Action
                                         if (Spy* spy = dynamic_cast<Spy*>(current)) {
                                             spy->spyOn(*player);
                                             displayMessage = current->getName() + " used spy action on " + player->getName();
@@ -289,18 +349,129 @@ void runGameGUI(Game& game) {
                                 Player* current = game.currentPlayer();
                                 
                                 try {
-                                    if (action == "Gather") {
+                                     if (action == "Gather") {
                                         game.playTurn(1);
-                                        displayMessage = game.getLastActionMessage();
-                                       
-                                    } else if (action == "Tax") {
-                                        game.playTurn(2);
-                                        displayMessage = game.getLastActionMessage();
-                                        
-                                    } else if (action == "Bribe") {
-                                        game.playTurn(3);
-                                        displayMessage = game.getLastActionMessage();
-                                        
+                                            displayMessage = game.getLastActionMessage();
+                                    }else if (action == "Tax") {
+                                        Player* performer = game.currentPlayer();
+                                        bool blocked = false;
+
+                                        // חפש Governor במשחק
+                                        for (Player* p : game.getPlayers()) {
+                                            if (p == performer || !p->isActive()) continue;
+                                            if (Governor* gov = dynamic_cast<Governor*>(p)) {
+                                                // פתח חלון שואל: האם לחסום?
+                                                sf::RenderWindow popup(sf::VideoMode(400, 200), "Block Tax?");
+                                                sf::Text msg("Block tax of " + performer->getName() + "?", font, 24);
+                                                msg.setPosition(50, 50);
+                                                msg.setFillColor(sf::Color(50, 50, 120));
+
+                                                sf::RectangleShape yesBtn(sf::Vector2f(100, 40));
+                                                yesBtn.setPosition(70, 120);
+                                                yesBtn.setFillColor(sf::Color(180, 240, 200));
+
+                                                sf::RectangleShape noBtn(sf::Vector2f(100, 40));
+                                                noBtn.setPosition(230, 120);
+                                                noBtn.setFillColor(sf::Color(250, 180, 180));
+
+                                                sf::Text yesText("Yes", font, 20);
+                                                yesText.setPosition(100, 125);
+                                                yesText.setFillColor(sf::Color::Black);
+
+                                                sf::Text noText("No", font, 20);
+                                                noText.setPosition(260, 125);
+                                                noText.setFillColor(sf::Color::Black);
+
+                                                while (popup.isOpen()) {
+                                                    sf::Event pe;
+                                                    while (popup.pollEvent(pe)) {
+                                                        if (pe.type == sf::Event::Closed) popup.close();
+                                                        if (pe.type == sf::Event::MouseButtonPressed) {
+                                                            sf::Vector2f mPos(pe.mouseButton.x, pe.mouseButton.y);
+                                                            if (yesBtn.getGlobalBounds().contains(mPos)) {
+                                                                game.tryBlockTax(gov);
+                                                                displayMessage = gov->getName() + " blocked tax of " + performer->getName();
+                                                                blocked = true;
+                                                                popup.close();
+                                                            } else if (noBtn.getGlobalBounds().contains(mPos)) {
+                                                                popup.close();
+                                                            }
+                                                        }
+                                                    }
+
+                                                    popup.clear(sf::Color(240, 240, 250));
+                                                    popup.draw(msg);
+                                                    popup.draw(yesBtn); popup.draw(noBtn);
+                                                    popup.draw(yesText); popup.draw(noText);
+                                                    popup.display();
+                                                }
+
+                                                break; // יש רק Governor אחד
+                                            }
+                                        }
+
+                                        if (!blocked) {
+                                            game.playTurn(2);  // מבצעים Tax אם לא נחסם
+                                            displayMessage = game.getLastActionMessage();
+                                        }
+                                    }
+                                    if (action == "Bribe") {
+                                        Player* performer = game.currentPlayer();
+                                        bool blocked = false;
+
+                                        for (Player* p : game.getPlayers()) {
+                                            if (p == performer || !p->isActive()) continue;
+                                            if (Judge* judge = dynamic_cast<Judge*>(p)) {
+                                                sf::RenderWindow popup(sf::VideoMode(400, 200), "Block Bribe?");
+                                                sf::Text msg("Block bribe of " + performer->getName() + "?", font, 24);
+                                                msg.setPosition(50, 50);
+                                                msg.setFillColor(sf::Color(50, 50, 120));
+
+                                                sf::RectangleShape yesBtn(sf::Vector2f(100, 40));
+                                                yesBtn.setPosition(70, 120);
+                                                yesBtn.setFillColor(sf::Color(180, 240, 200));
+
+                                                sf::RectangleShape noBtn(sf::Vector2f(100, 40));
+                                                noBtn.setPosition(230, 120);
+                                                noBtn.setFillColor(sf::Color(250, 180, 180));
+
+                                                sf::Text yesText("Yes", font, 20);
+                                                yesText.setPosition(100, 125);
+                                                yesText.setFillColor(sf::Color::Black);
+
+                                                sf::Text noText("No", font, 20);
+                                                noText.setPosition(260, 125);
+                                                noText.setFillColor(sf::Color::Black);
+
+                                                while (popup.isOpen()) {
+                                                    sf::Event pe;
+                                                    while (popup.pollEvent(pe)) {
+                                                        if (pe.type == sf::Event::Closed) popup.close();
+                                                        if (pe.type == sf::Event::MouseButtonPressed) {
+                                                            sf::Vector2f mPos(pe.mouseButton.x, pe.mouseButton.y);
+                                                            if (yesBtn.getGlobalBounds().contains(mPos)) {
+                                                                game.tryBlockBribe(judge);
+                                                                displayMessage = judge->getName() + " blocked bribe of " + performer->getName();
+                                                                blocked = true;
+                                                                popup.close();
+                                                            } else if (noBtn.getGlobalBounds().contains(mPos)) {
+                                                                popup.close();
+                                                            }
+                                                        }
+                                                    }
+                                                    popup.clear(sf::Color(240, 240, 250));
+                                                    popup.draw(msg);
+                                                    popup.draw(yesBtn); popup.draw(noBtn);
+                                                    popup.draw(yesText); popup.draw(noText);
+                                                    popup.display();
+                                                }
+                                                break;
+                                            }
+                                        }
+                                        if (!blocked) {
+                                            game.playTurn(3);
+                                            displayMessage = game.getLastActionMessage();
+                                        }
                                     } else if (action == "Arrest") {
                                         pendingAction = 4;
                                         awaitingTarget = true;
@@ -551,5 +722,48 @@ void runGameGUI(Game& game) {
         }
         
         window.display();
+        try {
+    std::string winner = game.getWinner();
+
+    // מנקה את החלון ומציג מסך הסיום
+    window.clear(sf::Color(230, 240, 250));  // רקע תואם למשחק
+
+    // כותרת ראשית: GAME OVER
+    sf::Text gameOverText("GAME OVER!", font, 64);
+    gameOverText.setFillColor(sf::Color(0, 102, 204));  // כחול כמו כותרת המשחק
+    gameOverText.setStyle(sf::Text::Bold | sf::Text::Underlined);
+    sf::FloatRect titleBounds = gameOverText.getLocalBounds();
+    gameOverText.setOrigin(titleBounds.width / 2, titleBounds.height / 2);
+    gameOverText.setPosition(window.getSize().x / 2, window.getSize().y / 2 - 60);
+
+    // שם המנצח
+    sf::Text winnerText("THE WINNER IS: " + winner, font, 40);
+    winnerText.setFillColor(sf::Color(0, 150, 130));  // ירוק-כחול עדין – תואם לכפתורי הפעולה
+    winnerText.setStyle(sf::Text::Bold);
+    sf::FloatRect winnerBounds = winnerText.getLocalBounds();
+    winnerText.setOrigin(winnerBounds.width / 2, winnerBounds.height / 2);
+    winnerText.setPosition(window.getSize().x / 2, window.getSize().y / 2 + 20);
+
+    // מציג הכל
+    window.draw(gameOverText);
+    window.draw(winnerText);
+    window.display();
+
+    // מחכה לאירוע
+    sf::Event event;
+    while (window.waitEvent(event)) {
+        if (event.type == sf::Event::Closed ||
+            event.type == sf::Event::KeyPressed ||
+            event.type == sf::Event::MouseButtonPressed) {
+            window.close();
+            return;
+        }
+    }
+
+} catch (...) {
+    // המשחק עדיין לא נגמר
+}
+
+
     }
 }

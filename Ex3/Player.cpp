@@ -61,6 +61,11 @@ void Player::updateArrestBlock(bool reset) {
     }
 }
 
+void Player::receiveSanctionFrom(Player& attacker) {
+    // ברירת מחדל – לא עושה כלום
+}
+
+
 
 
 // Actions
@@ -92,7 +97,11 @@ void Player::arrest(Player& other) {
     if (!other.isActive()) {
         throw std::invalid_argument("Cannot arrest an inactive player.");
     }
+     if (other.getCoins() < 1) {
+        throw std::invalid_argument("Target has no coins to take.");
+    }
     other.removeCoins(1);
+    addCoins(1);
     std::cout << name << " arrested " << other.getName() << " and took 1 coin.\n";
 }
 
@@ -103,11 +112,15 @@ void Player::sanction(Player& other) {
     if (!other.isActive()) {
         throw std::invalid_argument("Cannot sanction an inactive player.");
     }
-    
+
     removeCoins(3);
     other.setSanctioned(true);
     std::cout << name << " sanctioned " << other.getName() << ".\n";
+
+    // ✅ הוספה: אם ל־other יש תגובה מיוחדת ל־sanction (כמו השופט), היא תופעל כאן
+    other.receiveSanctionFrom(*this);
 }
+
 
 void Player::coup(Player& other) {
     if (coins < 7) {

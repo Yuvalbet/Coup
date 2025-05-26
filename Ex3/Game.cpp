@@ -86,33 +86,51 @@ void Game::setCurrentTurnIndex(int index) {
 
 
 
+void Game::tryBlockBribe(Judge* judge) {
+    for (size_t i = 0; i < pendingActionTypes.size(); ++i) {
+    if (pendingActionTypes[i] == "bribe") {
+        judge->blockBribe(*pendingPerformers[i]);
+        pendingActionTypes.erase(pendingActionTypes.begin() + i);
+        pendingPerformers.erase(pendingPerformers.begin() + i);
+        pendingTargets.erase(pendingTargets.begin() + i);
+        return;
+    }
+}
 
-// void Game::tryBlockBribe(Judge* judge) {
-//     for (auto it = pendingActions.begin(); it != pendingActions.end(); ++it) {
-//         if (it->type == "bribe") {
-//             judge->blockBribe(*(it->performer));
-//             pendingActions.erase(it);
-//             return;
-//         }
-//     }
-//     std::cout << "No bribe action to block.\n";
-// }
+    std::cout << "No bribe action to block.\n";
+}
 
-// void Game::tryBlockTax(Governor* governor) {
-//     std::cout << "[DEBUG] Trying to block tax. Pending actions size: " << pendingActions.size() << "\n";
-//     for (const auto& action : pendingActions) {
-//         std::cout << "- " << action.type << " by " << action.performer->getName() << "\n";
-//     }
 
-//     for (auto it = pendingActions.begin(); it != pendingActions.end(); ++it) {
-//         if (it->type == "tax") {
-//             governor->blockTax(*(it->performer));
-//             pendingActions.erase(it);
-//             return;
-//         }
-//     }
-//     std::cout << "No tax action to block.\n";
-// }
+void Game::tryBlockTax(Governor* governor) {
+    for (size_t i = 0; i < pendingActionTypes.size(); ++i) {
+    if (pendingActionTypes[i] == "tax") {
+        governor->blockTax(*pendingPerformers[i]);
+        pendingActionTypes.erase(pendingActionTypes.begin() + i);
+        pendingPerformers.erase(pendingPerformers.begin() + i);
+        pendingTargets.erase(pendingTargets.begin() + i);
+        return;
+    }
+}
+
+    std::cout << "No tax action to block.\n";
+}
+
+void Game::tryBlockCoup(General* general) {
+    for (size_t i = 0; i < pendingActionTypes.size(); ++i) {
+        if (pendingActionTypes[i] == "coup") {
+            general->blockCoup(*pendingTargets[i], *pendingPerformers[i]);
+            setLastActionMessage(general->getName() + " blocked the coup of " + pendingPerformers[i]->getName());
+            pendingActionTypes.erase(pendingActionTypes.begin() + i);
+            pendingPerformers.erase(pendingPerformers.begin() + i);
+            pendingTargets.erase(pendingTargets.begin() + i);
+            nextTurn();  // התור עובר גם אם נחסמה ההפיכה
+            return;
+        }
+    }
+    std::cout << "No coup action to block.\n";
+}
+
+
 
 
 void Game::playTurn(int choice, Player* target) {
@@ -122,25 +140,19 @@ void Game::playTurn(int choice, Player* target) {
         throw std::runtime_error("You have 10+ coins. You MUST perform a coup.");
     }
 
-    int extraActions = 1;
 
-    while (extraActions > 0) {
-        if (player->getCoins() >= 10 && choice != 6) {
-            std::cout << "You have 10+ coins. You MUST perform a coup.\n";
-            return;
-        }
 
-        if ((choice == 3 && player->getCoins() < 4) ||
-            (choice == 5 && player->getCoins() < 3) ||
-            (choice == 6 && player->getCoins() < 7)) {
-            std::cout << "Not enough coins for that action.\n";
-            return;
-        }
+    if ((choice == 3 && player->getCoins() < 4) ||
+        (choice == 5 && player->getCoins() < 3) ||
+        (choice == 6 && player->getCoins() < 7)) {
+        std::cout << "Not enough coins for that action.\n";
+        return;
+    }
 
-        if (player->isSanctioned() && (choice == 1 || choice == 2)) {
-            std::cout << "You are sanctioned and cannot use gather or tax this turn.\n";
-            return;
-        }
+    if (player->isSanctioned() && (choice == 1 || choice == 2)) {
+        setLastActionMessage(player->getName() + " is sanctioned and cannot perform this action.");
+        return;
+    }
 
         try {
             switch (choice) {
@@ -151,19 +163,27 @@ void Game::playTurn(int choice, Player* target) {
 
                 case 2:
                     player->tax();
+                    pendingActionTypes.push_back("tax");
+                    pendingPerformers.push_back(player);
+                    pendingTargets.push_back(nullptr);
                     setLastActionMessage(player->getName() + " collected 2 coins from tax.");
                     break;
 
                 case 3:
-                    player->bribe();
-                    extraActions += 2;
+                    player->removeCoins(4); 
+                    pendingActionTypes.push_back("bribe");
+                    pendingPerformers.push_back(player);
+                    pendingTargets.push_back(nullptr);
+                    pendingExtraTurns += 2;  // לא לגעת ב-extraActions יותר
                     setLastActionMessage(player->getName() + " paid a bribe and received extra actions.");
                     break;
 
+
                 case 4:
                     if (!target) return;
-                    if (player->isArrestBlocked()) return;
-                    if (target == lastArrestedPlayer) return;
+                    if (target == lastArrestedPlayer){
+                     throw std::runtime_error("This player is still under arrest protection.");
+                    }
                     player->arrest(*target);
                     lastArrestedPlayer = target;
                     setLastActionMessage(player->getName() + " arrested " + target->getName() + ".");
@@ -176,11 +196,33 @@ void Game::playTurn(int choice, Player* target) {
                     setLastActionMessage(player->getName() + " sanctioned " + target->getName() + ".");
                     break;
 
-                case 6:
+                case 6: {
                     if (!target) return;
-                    player->coup(*target);
-                    setLastActionMessage(player->getName() + " performed a coup on " + target->getName() + ".");
-                    break;
+                    if (player->getCoins() < 7) {
+                        throw std::runtime_error("Not enough coins for coup.");
+                    }
+                    player->removeCoins(7);
+                    bool blocked = false;
+
+                    for (Player* p : players) {
+                        if (p != player && p->isActive()) {
+                            if (auto* g = dynamic_cast<General*>(p)) {
+                                pendingActionTypes.push_back("coup");
+                                pendingPerformers.push_back(player);
+                                pendingTargets.push_back(target);
+                                blocked = true; // המתנה לפופאפ
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!blocked) {
+                        target->deactivate();
+                        setLastActionMessage(player->getName() + " performed a coup on " + target->getName() + ".");
+                    }
+
+                    break;  // ← חשוב
+                }
 
                 case 8:
                     if (auto* b = dynamic_cast<Baron*>(player)) {
@@ -207,12 +249,25 @@ void Game::playTurn(int choice, Player* target) {
             return;
         }
 
-        extraActions--;
-    }
+      player->updateArrestBlock(false);
 
-    player->updateArrestBlock(false);
+      if (pendingExtraTurns > 0) {
+    pendingExtraTurns--;
+} else {
     nextTurn();
+
+    // בדוק אם המשחק נגמר אחרי שעבר תור
+    try {
+        std::string winner = getWinner();
+        setLastActionMessage("🏆 Game Over! Winner: " + winner);
+    } catch (...) {
+        // המשחק עדיין נמשך – לא עושים כלום
+    }
 }
+
+}
+
+
 
 
 

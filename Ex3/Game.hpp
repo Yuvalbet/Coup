@@ -18,6 +18,13 @@ private:
     Player* sanctionedLastRound = nullptr;
     Player* lastArrestedPlayer;
     std::string lastActionMessage;
+    int pendingExtraTurns = 0;  // בתוך private
+    
+    std::vector<std::string> pendingActionTypes;
+    std::vector<Player*> pendingPerformers;
+    std::vector<Player*> pendingTargets; // יכול להיות nullptr
+
+
 
 
 public:
@@ -35,6 +42,8 @@ public:
 
     void tryBlockBribe(Judge* judge);
     void tryBlockTax(Governor* governor);
+    void tryBlockCoup(General* general);
+
     std::vector<Player*> getValidTargets(Player* current) const;
 
     void assignRandomRoles(const std::vector<std::string>& names);
@@ -44,6 +53,7 @@ public:
     int getCurrentTurnIndex() const { return currentTurnIndex; }
     std::string getLastActionMessage() const;
     void setLastActionMessage(const std::string& msg);
+
 
 };
 
