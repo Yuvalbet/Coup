@@ -265,67 +265,85 @@ void runGameGUI(Game& game) {
                                     } if (pendingAction == 6) { // Coup
                                         Player* performer = game.currentPlayer();
                                         Player* target = player;
-                                        bool blocked = false;
 
-                                        for (Player* p : game.getPlayers()) {
-                                            if (p == performer || !p->isActive()) continue;
-                                            if (General* general = dynamic_cast<General*>(p)) {
-                                                sf::RenderWindow popup(sf::VideoMode(400, 200), "Block Coup?");
-                                                sf::Text msg("Block coup of " + performer->getName() + " on " + target->getName() + "?", font, 22);
-                                                msg.setPosition(30, 50);
-                                                msg.setFillColor(sf::Color(50, 50, 120));
+                                        if (performer->getCoins() < 7) {
+                                            displayMessage = performer->getName() + " does not have enough coins to perform a coup.";
+                                        } else {
+                                            performer->removeCoins(7); // משלם מיד
 
-                                                sf::RectangleShape yesBtn(sf::Vector2f(100, 40));
-                                                yesBtn.setPosition(70, 120);
-                                                yesBtn.setFillColor(sf::Color(180, 240, 200));
+                                            bool blocked = false;
 
-                                                sf::RectangleShape noBtn(sf::Vector2f(100, 40));
-                                                noBtn.setPosition(230, 120);
-                                                noBtn.setFillColor(sf::Color(250, 180, 180));
+                                            for (Player* p : game.getPlayers()) {
+                                                if (p == performer || !p->isActive()) continue;
 
-                                                sf::Text yesText("Yes", font, 20);
-                                                yesText.setPosition(100, 125);
-                                                yesText.setFillColor(sf::Color::Black);
+                                                if (General* general = dynamic_cast<General*>(p)) {
+                                                    if (general->getCoins() < 5) continue;
 
-                                                sf::Text noText("No", font, 20);
-                                                noText.setPosition(260, 125);
-                                                noText.setFillColor(sf::Color::Black);
+                                                    // Popup לשאול אם לחסום
+                                                    sf::RenderWindow popup(sf::VideoMode(400, 200), "Block Coup?");
+                                                    sf::Text msg("Block coup of " + performer->getName() + " on " + target->getName() + "?", font, 20);
+                                                    msg.setPosition(30, 50);
+                                                    msg.setFillColor(sf::Color(50, 50, 120));
 
-                                                while (popup.isOpen()) {
-                                                    sf::Event pe;
-                                                    while (popup.pollEvent(pe)) {
-                                                        if (pe.type == sf::Event::Closed) popup.close();
-                                                        if (pe.type == sf::Event::MouseButtonPressed) {
-                                                            sf::Vector2f mPos(pe.mouseButton.x, pe.mouseButton.y);
-                                                            if (yesBtn.getGlobalBounds().contains(mPos)) {
-                                                                game.tryBlockCoup(general);
-                                                                displayMessage = general->getName() + " blocked the coup!";
-                                                                blocked = true;
+                                                    sf::RectangleShape yesBtn(sf::Vector2f(100, 40));
+                                                    yesBtn.setPosition(70, 120);
+                                                    yesBtn.setFillColor(sf::Color(180, 240, 200));
+
+                                                    sf::RectangleShape noBtn(sf::Vector2f(100, 40));
+                                                    noBtn.setPosition(230, 120);
+                                                    noBtn.setFillColor(sf::Color(250, 180, 180));
+
+                                                    sf::Text yesText("Yes", font, 20);
+                                                    yesText.setPosition(100, 125);
+                                                    yesText.setFillColor(sf::Color::Black);
+
+                                                    sf::Text noText("No", font, 20);
+                                                    noText.setPosition(260, 125);
+                                                    noText.setFillColor(sf::Color::Black);
+
+                                                    while (popup.isOpen()) {
+                                                        sf::Event pe;
+                                                        while (popup.pollEvent(pe)) {
+                                                            if (pe.type == sf::Event::Closed)
                                                                 popup.close();
-                                                            } else if (noBtn.getGlobalBounds().contains(mPos)) {
-                                                                popup.close();
+                                                            if (pe.type == sf::Event::MouseButtonPressed) {
+                                                                sf::Vector2f mPos(pe.mouseButton.x, pe.mouseButton.y);
+                                                                if (yesBtn.getGlobalBounds().contains(mPos)) {
+                                                                    general->removeCoins(5);
+                                                                    displayMessage = general->getName() + " blocked the coup!";
+                                                                    blocked = true;
+                                                                    popup.close();
+                                                                } else if (noBtn.getGlobalBounds().contains(mPos)) {
+                                                                    popup.close();
+                                                                }
                                                             }
                                                         }
+                                                        popup.clear(sf::Color(240, 240, 250));
+                                                        popup.draw(msg);
+                                                        popup.draw(yesBtn); popup.draw(noBtn);
+                                                        popup.draw(yesText); popup.draw(noText);
+                                                        popup.display();
                                                     }
-                                                    popup.clear(sf::Color(240, 240, 250));
-                                                    popup.draw(msg);
-                                                    popup.draw(yesBtn); popup.draw(noBtn);
-                                                    popup.draw(yesText); popup.draw(noText);
-                                                    popup.display();
-                                                }
-                                                break;
-                                            }
-                                        }
 
-                                        if (!blocked) {
-                                            game.playTurn(6, target);
-                                            displayMessage = game.getLastActionMessage();
+                                                    break; // בדקנו רק גנרל אחד
+                                                }
+                                            }
+
+                                            if (!blocked) {
+                                                target->deactivate();  // ❗ לא לקרוא שוב ל־playTurn!
+                                                displayMessage = performer->getName() + " performed a coup on " + target->getName() + ".";
+                                            }
+
+                                            game.nextTurn();
                                         }
 
                                         awaitingTarget = false;
                                         pendingAction = 0;
                                         break;
                                     }
+
+
+
                                     else if (pendingAction == 9) { // Spy Action
                                         if (Spy* spy = dynamic_cast<Spy*>(current)) {
                                             spy->spyOn(*player);
@@ -414,14 +432,22 @@ void runGameGUI(Game& game) {
                                             game.playTurn(2);  // מבצעים Tax אם לא נחסם
                                             displayMessage = game.getLastActionMessage();
                                         }
-                                    }
-                                    if (action == "Bribe") {
+                                    }if (action == "Bribe") {
                                         Player* performer = game.currentPlayer();
+
+                                        if (performer->getCoins() < 4) {
+                                            displayMessage = performer->getName() + " does not have enough coins to bribe.";
+                                            break;
+                                        }
+
+                                        performer->removeCoins(4); // ✅ תשלום מראש
+
                                         bool blocked = false;
 
                                         for (Player* p : game.getPlayers()) {
                                             if (p == performer || !p->isActive()) continue;
                                             if (Judge* judge = dynamic_cast<Judge*>(p)) {
+                                                // Popup...
                                                 sf::RenderWindow popup(sf::VideoMode(400, 200), "Block Bribe?");
                                                 sf::Text msg("Block bribe of " + performer->getName() + "?", font, 24);
                                                 msg.setPosition(50, 50);
@@ -465,14 +491,19 @@ void runGameGUI(Game& game) {
                                                     popup.draw(yesText); popup.draw(noText);
                                                     popup.display();
                                                 }
+
                                                 break;
                                             }
                                         }
+
                                         if (!blocked) {
-                                            game.playTurn(3);
+                                            game.playTurn(3); // ✅ פעולה מתבצעת – כולל 2 תורות אקסטרה
+                                            game.addExtraTurns(2);
                                             displayMessage = game.getLastActionMessage();
+                                            break;
                                         }
-                                    } else if (action == "Arrest") {
+                                    }
+                                    else if (action == "Arrest") {
                                         pendingAction = 4;
                                         awaitingTarget = true;
                                         displayMessage = "Choose a target to arrest.";

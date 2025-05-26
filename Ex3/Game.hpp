@@ -19,7 +19,7 @@ private:
     Player* lastArrestedPlayer;
     std::string lastActionMessage;
     int pendingExtraTurns = 0;  // בתוך private
-    
+
     std::vector<std::string> pendingActionTypes;
     std::vector<Player*> pendingPerformers;
     std::vector<Player*> pendingTargets; // יכול להיות nullptr
@@ -42,7 +42,7 @@ public:
 
     void tryBlockBribe(Judge* judge);
     void tryBlockTax(Governor* governor);
-    void tryBlockCoup(General* general);
+    bool tryBlockCoup(Player* source, Player* target);
 
     std::vector<Player*> getValidTargets(Player* current) const;
 
@@ -53,6 +53,8 @@ public:
     int getCurrentTurnIndex() const { return currentTurnIndex; }
     std::string getLastActionMessage() const;
     void setLastActionMessage(const std::string& msg);
+    void addExtraTurns(int count); // ✅ פונקציה חדשה לצבירת תורות נוספים
+
 
 
 };

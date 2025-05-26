@@ -22,10 +22,9 @@ const std::vector<Player*>& Game::getPlayers() const {
 
 void Game::nextTurn() {
 
-    std::cout << "---- NEXT TURN DEBUG ----\n";
-    for (size_t i = 0; i < players.size(); ++i) {
-        std::cout << "[" << i << "] " << players[i]->getName()
-                  << " | Active: " << players[i]->isActive() << "\n";
+    if (pendingExtraTurns > 0) {
+        pendingExtraTurns--;
+        return; // ❗❗ חייב לחזור מייד!
     }
 
     do {
@@ -114,20 +113,19 @@ void Game::tryBlockTax(Governor* governor) {
 
     std::cout << "No tax action to block.\n";
 }
+bool Game::tryBlockCoup(Player* source, Player* target) {
+    for (Player* p : players) {
+        if (!p->isActive()) continue;
 
-void Game::tryBlockCoup(General* general) {
-    for (size_t i = 0; i < pendingActionTypes.size(); ++i) {
-        if (pendingActionTypes[i] == "coup") {
-            general->blockCoup(*pendingTargets[i], *pendingPerformers[i]);
-            setLastActionMessage(general->getName() + " blocked the coup of " + pendingPerformers[i]->getName());
-            pendingActionTypes.erase(pendingActionTypes.begin() + i);
-            pendingPerformers.erase(pendingPerformers.begin() + i);
-            pendingTargets.erase(pendingTargets.begin() + i);
-            nextTurn();  // התור עובר גם אם נחסמה ההפיכה
-            return;
+        General* general = dynamic_cast<General*>(p);
+        if (general != nullptr && general->getCoins() >= 5) {
+            pendingPerformers.push_back(source);
+            pendingTargets.push_back(target);
+            pendingActionTypes.push_back("Coup");
+            return true;
         }
     }
-    std::cout << "No coup action to block.\n";
+    return false;
 }
 
 
@@ -170,11 +168,9 @@ void Game::playTurn(int choice, Player* target) {
                     break;
 
                 case 3:
-                    player->removeCoins(4); 
                     pendingActionTypes.push_back("bribe");
                     pendingPerformers.push_back(player);
                     pendingTargets.push_back(nullptr);
-                    pendingExtraTurns += 2;  // לא לגעת ב-extraActions יותר
                     setLastActionMessage(player->getName() + " paid a bribe and received extra actions.");
                     break;
 
@@ -196,33 +192,52 @@ void Game::playTurn(int choice, Player* target) {
                     setLastActionMessage(player->getName() + " sanctioned " + target->getName() + ".");
                     break;
 
-                case 6: {
-                    if (!target) return;
-                    if (player->getCoins() < 7) {
-                        throw std::runtime_error("Not enough coins for coup.");
-                    }
-                    player->removeCoins(7);
-                    bool blocked = false;
+                    case 6:{
+                        if (!target) return;
 
-                    for (Player* p : players) {
-                        if (p != player && p->isActive()) {
-                            if (auto* g = dynamic_cast<General*>(p)) {
-                                pendingActionTypes.push_back("coup");
-                                pendingPerformers.push_back(player);
-                                pendingTargets.push_back(target);
-                                blocked = true; // המתנה לפופאפ
-                                break;
+                        if (player->getCoins() < 7) {
+                            throw std::runtime_error("Not enough coins for coup.");
+                        }
+
+                        player->removeCoins(7); // ✅ תמיד יורדים 7 מטבעות
+
+                        bool hasGeneral = false;
+                        for (Player* p : players) {
+                            if (p != player && p->isActive()) {
+                                if (dynamic_cast<General*>(p)) {
+                                    hasGeneral = true;
+                                    break;
+                                }
                             }
                         }
+
+                        if (hasGeneral) {
+                            pendingActionTypes.push_back("coup");
+                            pendingPerformers.push_back(player);
+                            pendingTargets.push_back(target);
+                            setLastActionMessage(player->getName() + " attempted a coup. Waiting for General.");
+                            return; // ❗ עצירה כאן – נחכה להחלטת הגנרל
+                        } else {
+                            target->deactivate(); // ✅ מבצעים הפיכה אם אין מי שיחסום
+                            setLastActionMessage(player->getName() + " performed a coup on " + target->getName() + ".");
+                        }
+
+                        if (pendingExtraTurns > 0) {
+                            pendingExtraTurns--;
+                        } else {
+                            nextTurn();
+                            try {
+                                std::string winner = getWinner();
+                                setLastActionMessage("🏆 Game Over! Winner: " + winner);
+                            } catch (...) {}
+                        }
+
+                        break;
                     }
 
-                    if (!blocked) {
-                        target->deactivate();
-                        setLastActionMessage(player->getName() + " performed a coup on " + target->getName() + ".");
-                    }
 
-                    break;  // ← חשוב
-                }
+
+
 
                 case 8:
                     if (auto* b = dynamic_cast<Baron*>(player)) {
@@ -319,5 +334,9 @@ std::string Game::getLastActionMessage() const {
 
 void Game::setLastActionMessage(const std::string& msg) {
     lastActionMessage = msg;
+}
+
+void Game::addExtraTurns(int count) {
+    pendingExtraTurns += count;
 }
 

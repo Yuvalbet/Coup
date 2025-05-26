@@ -9,15 +9,14 @@ General::General(const std::string& name) : Player(name) {
 std::string General::getRoleName() const {
     return "General";
 }
-
 void General::blockCoup(Player& target, Player& attacker) {
     if (coins < 5) {
-        throw std::invalid_argument("Not enough coins to block coup.");
+        throw std::runtime_error("General doesn't have enough coins to block.");
     }
-
-    removeCoins(5);
-    std::cout << name << " blocked the coup on " << target.getName() << " and paid 5 coins.\n";
+    removeCoins(5);  // ✅ משלמים עבור החסימה
+    std::cout << name << " blocked the coup attempt on " << target.getName() << "!\n";
 }
+
 
 void General::onArrested() {
     addCoins(1);
