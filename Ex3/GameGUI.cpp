@@ -282,26 +282,50 @@ void runGameGUI(Game& game) {
                                                     if (general->getCoins() < 5) continue;
 
                                                     // Popup לשאול אם לחסום
-                                                    sf::RenderWindow popup(sf::VideoMode(400, 200), "Block Coup?");
-                                                    sf::Text msg("Block coup of " + performer->getName() + " on " + target->getName() + "?", font, 20);
-                                                    msg.setPosition(30, 50);
+                                                    sf::VideoMode popupSize(500, 250);
+                                                    sf::RenderWindow popup(popupSize, "Block Coup?", sf::Style::Titlebar | sf::Style::Close);
+
+                                                    // מרכזי את החלון במסך הראשי
+                                                    sf::Vector2i centerPos(
+                                                        (sf::VideoMode::getDesktopMode().width - popupSize.width) / 2,
+                                                        (sf::VideoMode::getDesktopMode().height - popupSize.height) / 2
+                                                    );
+                                                    popup.setPosition(centerPos);
+                                                    std::string popupText = general->getName() + ", do you want to block the coup of " + performer->getName() + " on " + target->getName() + "?";
+                                                    int fontSize = 28;
+                                                    sf::Text msg(popupText, font, fontSize);
                                                     msg.setFillColor(sf::Color(50, 50, 120));
 
+                                                    // Shrink font size if too wide
+                                                    while (msg.getLocalBounds().width > 460 && fontSize > 12) {
+                                                        fontSize--;
+                                                        msg.setCharacterSize(fontSize);
+                                                    }
+
+                                                    // מרכז את הטקסט באמצע
+                                                    sf::FloatRect textBounds = msg.getLocalBounds();
+                                                    msg.setOrigin(textBounds.width / 2, textBounds.height / 2);
+                                                    msg.setPosition(popupSize.width / 2, popupSize.height / 2 - 50);
+
+
+
                                                     sf::RectangleShape yesBtn(sf::Vector2f(100, 40));
-                                                    yesBtn.setPosition(70, 120);
                                                     yesBtn.setFillColor(sf::Color(180, 240, 200));
+                                                    yesBtn.setPosition(popupSize.width / 2 - 130, popupSize.height / 2 + 20);
 
                                                     sf::RectangleShape noBtn(sf::Vector2f(100, 40));
-                                                    noBtn.setPosition(230, 120);
                                                     noBtn.setFillColor(sf::Color(250, 180, 180));
+                                                    noBtn.setPosition(popupSize.width / 2 + 30, popupSize.height / 2 + 20);
 
                                                     sf::Text yesText("Yes", font, 20);
-                                                    yesText.setPosition(100, 125);
                                                     yesText.setFillColor(sf::Color::Black);
+                                                    yesText.setPosition(yesBtn.getPosition().x + 30, yesBtn.getPosition().y + 5);
+
 
                                                     sf::Text noText("No", font, 20);
-                                                    noText.setPosition(260, 125);
                                                     noText.setFillColor(sf::Color::Black);
+                                                    noText.setPosition(noBtn.getPosition().x + 30, noBtn.getPosition().y + 5);
+
 
                                                     while (popup.isOpen()) {
                                                         sf::Event pe;
@@ -381,26 +405,50 @@ void runGameGUI(Game& game) {
                                             if (p == performer || !p->isActive()) continue;
                                             if (Governor* gov = dynamic_cast<Governor*>(p)) {
                                                 // פתח חלון שואל: האם לחסום?
-                                                sf::RenderWindow popup(sf::VideoMode(400, 200), "Block Tax?");
-                                                sf::Text msg("Block tax of " + performer->getName() + "?", font, 24);
-                                                msg.setPosition(50, 50);
+                                                sf::VideoMode popupSize(500, 250);
+                                                sf::RenderWindow popup(popupSize, "Block Tax?", sf::Style::Titlebar | sf::Style::Close);
+
+                                                // מרכזי את החלון במסך הראשי
+                                                sf::Vector2i centerPos(
+                                                    (sf::VideoMode::getDesktopMode().width - popupSize.width) / 2,
+                                                    (sf::VideoMode::getDesktopMode().height - popupSize.height) / 2
+                                                );
+                                                popup.setPosition(centerPos);
+                                                std::string popupText = gov->getName() + ", do you want to block the tax of " + performer->getName() + "?";
+                                                int fontSize = 28;
+                                                sf::Text msg(popupText, font, fontSize);
                                                 msg.setFillColor(sf::Color(50, 50, 120));
 
-                                                sf::RectangleShape yesBtn(sf::Vector2f(100, 40));
-                                                yesBtn.setPosition(70, 120);
-                                                yesBtn.setFillColor(sf::Color(180, 240, 200));
+                                                // מקטין פונט עד שהמלל נכנס לרוחב החלון
+                                                while (msg.getLocalBounds().width > 460 && fontSize > 12) {
+                                                    fontSize--;
+                                                    msg.setCharacterSize(fontSize);
+                                                }
 
+                                                // ממקם את הטקסט במרכז האופקי
+                                                sf::FloatRect msgBounds = msg.getLocalBounds();
+                                                msg.setOrigin(msgBounds.width / 2, msgBounds.height / 2);
+                                                msg.setPosition(popupSize.width / 2, 60);
+
+                                                sf::RectangleShape yesBtn(sf::Vector2f(100, 40));
+                                                yesBtn.setFillColor(sf::Color(180, 240, 200));
+                                                yesBtn.setPosition(popupSize.width / 2 - 130, popupSize.height / 2 + 20);
+
+                                                
                                                 sf::RectangleShape noBtn(sf::Vector2f(100, 40));
-                                                noBtn.setPosition(230, 120);
                                                 noBtn.setFillColor(sf::Color(250, 180, 180));
+                                                noBtn.setPosition(popupSize.width / 2 + 30, popupSize.height / 2 + 20);
+
 
                                                 sf::Text yesText("Yes", font, 20);
-                                                yesText.setPosition(100, 125);
                                                 yesText.setFillColor(sf::Color::Black);
+                                                yesText.setPosition(yesBtn.getPosition().x + 30, yesBtn.getPosition().y + 5);
+
 
                                                 sf::Text noText("No", font, 20);
-                                                noText.setPosition(260, 125);
                                                 noText.setFillColor(sf::Color::Black);
+                                                noText.setPosition(noBtn.getPosition().x + 30, noBtn.getPosition().y + 5);
+
 
                                                 while (popup.isOpen()) {
                                                     sf::Event pe;
@@ -450,26 +498,42 @@ void runGameGUI(Game& game) {
                                             if (p == performer || !p->isActive()) continue;
                                             if (Judge* judge = dynamic_cast<Judge*>(p)) {
                                                 // Popup...
-                                                sf::RenderWindow popup(sf::VideoMode(400, 200), "Block Bribe?");
-                                                sf::Text msg("Block bribe of " + performer->getName() + "?", font, 24);
-                                                msg.setPosition(50, 50);
+                                                sf::VideoMode popupSize(500, 250);
+                                                sf::RenderWindow popup(popupSize, "Block Bribe?", sf::Style::Titlebar | sf::Style::Close);
+
+                                                sf::Vector2i centerPos(
+                                                    (sf::VideoMode::getDesktopMode().width - popupSize.width) / 2,
+                                                    (sf::VideoMode::getDesktopMode().height - popupSize.height) / 2);
+                                                popup.setPosition(centerPos);
+
+                                                std::string popupText = judge->getName() + ", do you want to block the bribe of " + performer->getName() + "?";
+                                                int fontSize = 28;
+                                                sf::Text msg(popupText, font, fontSize);
                                                 msg.setFillColor(sf::Color(50, 50, 120));
 
+                                                while (msg.getLocalBounds().width > 460 && fontSize > 12) {
+                                                    fontSize--;
+                                                    msg.setCharacterSize(fontSize);
+                                                }
+                                                sf::FloatRect textBounds = msg.getLocalBounds();
+                                                msg.setOrigin(textBounds.width / 2, textBounds.height / 2);
+                                                msg.setPosition(popupSize.width / 2, popupSize.height / 2 - 40);
+
                                                 sf::RectangleShape yesBtn(sf::Vector2f(100, 40));
-                                                yesBtn.setPosition(70, 120);
                                                 yesBtn.setFillColor(sf::Color(180, 240, 200));
+                                                yesBtn.setPosition(popupSize.width / 2 - 120, popupSize.height / 2 + 20);
 
                                                 sf::RectangleShape noBtn(sf::Vector2f(100, 40));
-                                                noBtn.setPosition(230, 120);
                                                 noBtn.setFillColor(sf::Color(250, 180, 180));
+                                                noBtn.setPosition(popupSize.width / 2 + 20, popupSize.height / 2 + 20);
 
                                                 sf::Text yesText("Yes", font, 20);
-                                                yesText.setPosition(100, 125);
                                                 yesText.setFillColor(sf::Color::Black);
+                                                yesText.setPosition(yesBtn.getPosition().x + 30, yesBtn.getPosition().y + 5);
 
                                                 sf::Text noText("No", font, 20);
-                                                noText.setPosition(260, 125);
                                                 noText.setFillColor(sf::Color::Black);
+                                                noText.setPosition(noBtn.getPosition().x + 30, noBtn.getPosition().y + 5);
 
                                                 while (popup.isOpen()) {
                                                     sf::Event pe;
@@ -671,15 +735,22 @@ void runGameGUI(Game& game) {
                 float y = center.y + radius * std::sin(angle);
                 indexOnCircle++;
                 
-                sf::RectangleShape card(sf::Vector2f(150, 60));
+               // קודם יוצרים את הטקסט כדי לבדוק את הרוחב שהוא צריך
+                sf::Text nameText(player->getName(), font, 20);
+                float textWidth = nameText.getLocalBounds().width;
+
+                // הוסיפי שוליים של 40 פיקסלים לרוחב, וגובה קבוע
+                float cardWidth = std::max(150.f, textWidth + 40.f);  // לא פחות מ־150
+                float cardHeight = 60.f;
+
+                sf::RectangleShape card(sf::Vector2f(cardWidth, cardHeight));
                 card.setFillColor(j == game.getCurrentTurnIndex() ? sf::Color(180, 255, 180) : sf::Color::White);
                 card.setOutlineColor(sf::Color::Black);
                 card.setOutlineThickness(2);
-                card.setOrigin(75, 30);
+                card.setOrigin(cardWidth / 2, cardHeight / 2);
                 card.setPosition(x, y);
                 window.draw(card);
-                
-                sf::Text nameText(player->getName(), font, 20);
+
                 nameText.setFillColor(sf::Color::Black);
                 nameText.setOrigin(nameText.getLocalBounds().width / 2, nameText.getLocalBounds().height / 2);
                 nameText.setPosition(x, y - 10);
