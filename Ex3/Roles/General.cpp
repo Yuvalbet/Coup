@@ -19,6 +19,11 @@ void General::blockCoup(Player& target, Player& attacker) {
 
 
 void General::onArrested() {
-    addCoins(1);
     std::cout << name << " was arrested and got 1 coin back.\n";
 }
+
+void General::receiveArrestFrom(Player& attacker) {
+    setArrestedLastTurn(true);  // רק מעצר – בלי העברת מטבעות
+    onArrested();               // הגנרל יחזיר לעצמו מטבע, אם צריך
+}
+

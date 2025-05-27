@@ -4,6 +4,8 @@
 #include "Game.hpp"
 #include "Roles/Spy.hpp"
 #include "Player.hpp"
+#include "Roles/Baron.hpp"
+
 
 void runGameGUI(Game& game) {
     sf::RenderWindow window(sf::VideoMode(1500, 1000), "Coup Game Board");
@@ -497,8 +499,8 @@ void runGameGUI(Game& game) {
                                         }
 
                                         if (!blocked) {
+                                            game.addExtraTurns(1);
                                             game.playTurn(3); // ✅ פעולה מתבצעת – כולל 2 תורות אקסטרה
-                                            game.addExtraTurns(2);
                                             displayMessage = game.getLastActionMessage();
                                             break;
                                         }
@@ -519,6 +521,13 @@ void runGameGUI(Game& game) {
                                         pendingAction = 9;
                                         awaitingTarget = true;
                                         displayMessage = "Choose a target to spy on.";
+                                    } else if (action == "Invest") {
+                                        try {
+                                            game.playTurn(8);  // ✅ קורא לפעולה כמו שצריך
+                                            displayMessage = game.getLastActionMessage();  // הצגת ההודעה מהמשחק
+                                        } catch (const std::exception& e) {
+                                            displayMessage = "Error: " + std::string(e.what());
+                                        }
                                     }
                                 } catch (const std::exception& e) {
                                     displayMessage = "Error: " + std::string(e.what());
@@ -713,6 +722,8 @@ void runGameGUI(Game& game) {
                     
                     std::string role = currentPlayer->getRoleName();
                     if (role == "Spy") actions.push_back("Spy Action");
+                    if (role == "Baron") actions.push_back("Invest");
+
                     
                     actionButtons.clear();
                     actionLabels.clear();

@@ -19,10 +19,13 @@ void Merchant::onStartTurn() {
     }
 }
 
-void Merchant::onArrestedBy(Player& attacker) {
+void Merchant::receiveArrestFrom(Player& attacker) {
     if (coins < 2) {
-        throw std::invalid_argument("Merchant does not have enough coins to pay for arrest.");
+        throw std::runtime_error(name + " does not have 2 coins to be arrested.");
     }
-    removeCoins(2);
-    std::cout << name << " was arrested and paid 2 coins (no coins transferred to attacker).\n";
+
+    removeCoins(2);               // ❗ יורדים 2 מטבעות מהסוחר
+    setArrestedLastTurn(true);    // ✔️ נכנס למעצר
+    std::cout << name << " was arrested and paid 2 coins (no coins given to " << attacker.getName() << ").\n";
 }
+

@@ -10,7 +10,8 @@ public:
     std::string getRoleName() const override;
 
     void onStartTurn();
-    void onArrestedBy(Player& attacker);
+    void receiveArrestFrom(Player& attacker) override;
+
 };
 
 #endif // MERCHANT_HPP

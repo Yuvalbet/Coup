@@ -9,8 +9,11 @@ public:
 
     std::string getRoleName() const override;
 
+
     // פעולה ייחודית – חוסם הפיכה
     void blockCoup(Player& target, Player& attacker);
+
+    virtual void receiveArrestFrom(Player& attacker) override;
 
     // מקבל בחזרה את המטבע במקרה של arrest
     void onArrested();

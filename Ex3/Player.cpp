@@ -53,6 +53,11 @@ void Player::setSanctioned(bool value) {
     sanctioned = value;
 }
 
+void Player::setArrestedLastTurn(bool value) {
+    arrestedLastTurn = value;
+}
+
+
 void Player::updateArrestBlock(bool reset) {
     if (reset) {
         arrestBlockedTurns = 1; // קביעת חסימה לתור אחד
@@ -97,13 +102,11 @@ void Player::arrest(Player& other) {
     if (!other.isActive()) {
         throw std::invalid_argument("Cannot arrest an inactive player.");
     }
-     if (other.getCoins() < 1) {
-        throw std::invalid_argument("Target has no coins to take.");
-    }
-    other.removeCoins(1);
-    addCoins(1);
-    std::cout << name << " arrested " << other.getName() << " and took 1 coin.\n";
+
+    other.receiveArrestFrom(*this);  // ✅ ככה ניתנת שליטה לתפקיד
+    std::cout << name << " arrested " << other.getName() << ".\n";
 }
+
 
 void Player::sanction(Player& other) {
     if (coins < 3) {
@@ -130,3 +133,18 @@ void Player::coup(Player& other) {
     other.deactivate();
     std::cout << name << " performed a coup on " << other.getName() << ".\n";
 }
+
+void Player::receiveArrestFrom(Player& attacker) {
+    if (coins == 0) {
+        throw std::runtime_error(name + " has no coins to be arrested.");
+    }
+
+    removeCoins(1);         // יורד מהשחקן שנעצר
+    setArrestedLastTurn(true);
+    onArrested();
+}
+
+void Player::onArrested() {
+    // ברירת מחדל – לא עושה כלום
+}
+
