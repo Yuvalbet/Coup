@@ -60,17 +60,23 @@ void Player::setArrestedLastTurn(bool value) {
 
 void Player::updateArrestBlock(bool reset) {
     if (reset) {
-        arrestBlockedTurns = 1; // קביעת חסימה לתור אחד
-    } else if (arrestBlockedTurns > 0) {
-        arrestBlockedTurns--;   // הפחתה בתום תור
+        arrestBlockedTurns = 1;
+    } else {
+        arrestBlockedTurns = std::max(0, arrestBlockedTurns - 1);
     }
+
+    std::cout << "[DEBUG] updateArrestBlock: " << name
+              << " => arrestBlockedTurns = " << arrestBlockedTurns << std::endl;
 }
+
 
 void Player::receiveSanctionFrom(Player& attacker) {
     // ברירת מחדל – לא עושה כלום
 }
 
-
+void Player::setRevealedBySpy(bool val) {
+    revealedBySpy = val;
+}
 
 
 // Actions
@@ -103,10 +109,18 @@ void Player::arrest(Player& other) {
         throw std::invalid_argument("Cannot arrest an inactive player.");
     }
 
-    other.receiveArrestFrom(*this);  // ✅ ככה ניתנת שליטה לתפקיד
+    // 🔍 הוספת הדפסת DEBUG לבדוק האם השחקן נחסם בגלל SPY
+    std::cout << "[DEBUG] " << name << " wasSpiedLastTurn = "
+              << (this->wasSpiedLastTurn() ? "YES" : "NO") << std::endl;
+
+    if (this->isArrestBlocked() || this->wasSpiedLastTurn()) {
+        std::cout << "[DEBUG] " << name << " tried to arrest but is blocked!\n";
+        throw std::runtime_error(name + " is blocked from using arrest this turn.");
+    }
+
+    other.receiveArrestFrom(*this);
     std::cout << name << " arrested " << other.getName() << ".\n";
 }
-
 
 void Player::sanction(Player& other) {
     if (coins < 3) {
@@ -147,4 +161,19 @@ void Player::receiveArrestFrom(Player& attacker) {
 void Player::onArrested() {
     // ברירת מחדל – לא עושה כלום
 }
+
+
+bool Player::isRevealedBySpy() const {
+    return revealedBySpy;
+}
+
+bool Player::wasSpiedLastTurn() const {
+    return spiedLastTurn;
+}
+
+void Player::setSpiedLastTurn(bool value) {
+    spiedLastTurn = value;
+}
+
+
 

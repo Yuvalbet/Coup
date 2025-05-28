@@ -10,9 +10,21 @@ std::string Judge::getRoleName() const {
     return "Judge";
 }
 
-void Judge::blockBribe(Player& target) {
-    std::cout << target.getName() << "'s bribe was blocked by the Judge!\n";
+bool Judge::blockBribe(Player& performer) {
+    // אם חסם – מחזיר true, אם לא – false
+    std::cout << "Do you want to block the bribe? (y/n): ";
+    char response;
+    std::cin >> response;
+
+    if (response == 'y' || response == 'Y') {
+        std::cout << "Bribe was blocked.\n";
+        return true;
+    } else {
+        std::cout << "Bribe not blocked.\n";
+        return false;
+    }
 }
+
 
 void Judge::receiveSanctionFrom(Player& attacker) {
     attacker.removeCoins(1);

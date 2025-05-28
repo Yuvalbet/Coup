@@ -18,7 +18,9 @@ void runGameGUI(Game& game) {
     bool isInputActive = false;
     bool awaitingTarget = false;
     int pendingAction = 0; // 4 = Arrest, 5 = Sanction, 6 = Coup, 9 = Spy
-    
+    bool spyActionActive = false;             // אם כעת השחקן בחר Spy Action
+    Player* spyTargetPlayer = nullptr;        // מי נבחר לראות את המטבעות שלו
+
     std::vector<sf::RectangleShape> actionButtons;
     std::vector<std::string> actionLabels;
     std::vector<std::string> playerNames;
@@ -370,13 +372,19 @@ void runGameGUI(Game& game) {
 
 
 
-                                    else if (pendingAction == 9) { // Spy Action
-                                        if (Spy* spy = dynamic_cast<Spy*>(current)) {
+                                  else if (pendingAction == 9) { // Spy Action
+                                    if (Spy* spy = dynamic_cast<Spy*>(current)) {
+                                        try {
                                             spy->spyOn(*player);
+                                            spyTargetPlayer = player;
+                                            spyActionActive = true;
                                             displayMessage = current->getName() + " used spy action on " + player->getName();
+                                        } catch (const std::exception& e) {
+                                            displayMessage = "Spy action failed: " + std::string(e.what());
                                         }
-                                        
                                     }
+                                }
+
                                 } catch (const std::exception& e) {
                                     displayMessage = "Error: " + std::string(e.what());
                                 }
@@ -395,7 +403,9 @@ void runGameGUI(Game& game) {
                                 try {
                                      if (action == "Gather") {
                                         game.playTurn(1);
-                                            displayMessage = game.getLastActionMessage();
+                                        displayMessage = game.getLastActionMessage();
+                                        spyActionActive = false;
+                                        spyTargetPlayer = nullptr;
                                     }else if (action == "Tax") {
                                         Player* performer = game.currentPlayer();
                                         bool blocked = false;
@@ -481,6 +491,8 @@ void runGameGUI(Game& game) {
                                         if (!blocked) {
                                             game.playTurn(2);  // מבצעים Tax אם לא נחסם
                                             displayMessage = game.getLastActionMessage();
+                                            spyActionActive = false;
+                                            spyTargetPlayer = nullptr;
                                         }
                                     }if (action == "Bribe") {
                                         Player* performer = game.currentPlayer();
@@ -566,6 +578,8 @@ void runGameGUI(Game& game) {
                                             game.addExtraTurns(1);
                                             game.playTurn(3); // ✅ פעולה מתבצעת – כולל 2 תורות אקסטרה
                                             displayMessage = game.getLastActionMessage();
+                                            spyActionActive = false;
+                                            spyTargetPlayer = nullptr;
                                             break;
                                         }
                                     }
@@ -573,14 +587,20 @@ void runGameGUI(Game& game) {
                                         pendingAction = 4;
                                         awaitingTarget = true;
                                         displayMessage = "Choose a target to arrest.";
+                                        spyActionActive = false;
+                                        spyTargetPlayer = nullptr;
                                     } else if (action == "Sanction") {
                                         pendingAction = 5;
                                         awaitingTarget = true;
                                         displayMessage = "Choose a target to sanction.";
+                                        spyActionActive = false;
+                                        spyTargetPlayer = nullptr;
                                     } else if (action == "Coup") {
                                         pendingAction = 6;
                                         awaitingTarget = true;
                                         displayMessage = "Choose a target to coup.";
+                                        spyActionActive = false;
+                                        spyTargetPlayer = nullptr;
                                     } else if (action == "Spy Action") {
                                         pendingAction = 9;
                                         awaitingTarget = true;
@@ -589,6 +609,8 @@ void runGameGUI(Game& game) {
                                         try {
                                             game.playTurn(8);  // ✅ קורא לפעולה כמו שצריך
                                             displayMessage = game.getLastActionMessage();  // הצגת ההודעה מהמשחק
+                                            spyActionActive = false;
+                                            spyTargetPlayer = nullptr;
                                         } catch (const std::exception& e) {
                                             displayMessage = "Error: " + std::string(e.what());
                                         }
@@ -762,11 +784,21 @@ void runGameGUI(Game& game) {
                 roleText.setPosition(x, y + 15);
                 window.draw(roleText);
                 
-                sf::Text coinsText("Coins: " + std::to_string(player->getCoins()), font, 16);
+                std::string coinDisplayText;
+                if (player == game.currentPlayer()) {
+                    coinDisplayText = "Coins: " + std::to_string(player->getCoins());
+                } else if (spyActionActive && player == spyTargetPlayer) {
+                    coinDisplayText = "Coins: " + std::to_string(player->getCoins());
+                } else {
+                    coinDisplayText = "Coins: Hidden";
+                }
+
+                sf::Text coinsText(coinDisplayText, font, 16);
                 coinsText.setFillColor(sf::Color(120, 90, 20));
                 coinsText.setOrigin(coinsText.getLocalBounds().width / 2, coinsText.getLocalBounds().height / 2);
                 coinsText.setPosition(x, y + 35);
                 window.draw(coinsText);
+
                 
             }
             

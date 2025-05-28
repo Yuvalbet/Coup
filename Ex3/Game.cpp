@@ -21,34 +21,46 @@ const std::vector<Player*>& Game::getPlayers() const {
 }
 
 void Game::nextTurn() {
-
     if (pendingExtraTurns > 0) {
         pendingExtraTurns--;
-        return; // ❗❗ חייב לחזור מייד!
+                std::cout << "[DEBUG] BRIBE TURN used – still got more (" << pendingExtraTurns << " left)" << std::endl;
+        return;
     }
 
+    // 🔁 שומרים את השחקן של התור הנוכחי לפני המעבר לתור הבא
+    Player* previousPlayer = players[currentTurnIndex];
+
+    // מעבר לשחקן הפעיל הבא
     do {
         currentTurnIndex = (currentTurnIndex + 1) % players.size();
     } while (!players[currentTurnIndex]->isActive());
 
-   
+    // 🧹 איפוס חסימת Spy רק מהשחקן הקודם
+    previousPlayer->setSpiedLastTurn(false);
 
-    // ✅ אם השחקן הנוכחי היה מי שסומן כ־sanctioned מהתור הקודם – החרם מבוטל רק עכשיו
+    std::cout << "[DEBUG] Turn for: " << players[currentTurnIndex]->getName()
+              << ", arrestBlockedTurns = " << (players[currentTurnIndex]->isArrestBlocked() ? "YES" : "NO") << std::endl;
+
     if (players[currentTurnIndex] == sanctionedLastRound) {
-        players[currentTurnIndex]->setSanctioned(true);   // מפעילים את החרם עכשיו
-        sanctionedLastRound = nullptr;                    // מסמנים שאין יותר חרם שממתין
+        players[currentTurnIndex]->setSanctioned(true);
+        sanctionedLastRound = nullptr;
     } else {
-        players[currentTurnIndex]->setSanctioned(false);  // כל שאר השחקנים לא בחרם
+        players[currentTurnIndex]->setSanctioned(false);
     }
-
 
     Merchant* merchant = dynamic_cast<Merchant*>(players[currentTurnIndex]);
     if (merchant && merchant->getCoins() >= 3) {
         merchant->onStartTurn();
     }
 
-    
+     // ✅ איפוס חסימות Arrest מכל סיבה (כולל Spy)
+    for (Player* p : players) {
+        if (p->isActive()) {
+            p->updateArrestBlock(false);
+        }
+    }
 }
+
 
 
 Player* Game::currentPlayer() const {
@@ -88,7 +100,12 @@ void Game::setCurrentTurnIndex(int index) {
 void Game::tryBlockBribe(Judge* judge) {
     for (size_t i = 0; i < pendingActionTypes.size(); ++i) {
     if (pendingActionTypes[i] == "bribe") {
-        judge->blockBribe(*pendingPerformers[i]);
+         // נניח שהשופט בחר לא לחסום
+            bool blocked = judge->blockBribe(*pendingPerformers[i]);
+            if (!blocked) {
+                // רק אם לא חסם – מוסיפים תורות
+                addExtraTurns(2);
+            }
         pendingActionTypes.erase(pendingActionTypes.begin() + i);
         pendingPerformers.erase(pendingPerformers.begin() + i);
         pendingTargets.erase(pendingTargets.begin() + i);
@@ -248,6 +265,7 @@ void Game::playTurn(int choice, Player* target) {
                 if (auto* s = dynamic_cast<Spy*>(player)) {
                     if (!target) return;
                     s->spyOn(*target);
+                    lastArrestedPlayer = target;
                     setLastActionMessage(player->getName() + " spied on " + target->getName() + ".");
                     turnConsumed = true;
                 }
@@ -263,12 +281,23 @@ void Game::playTurn(int choice, Player* target) {
         return;
     }
 
-    player->updateArrestBlock(false);
 
 if (turnConsumed) {
+     // ✅ אם הפעולה שוחד לא נחסמה – נוסיף 2 תורות
+    for (size_t i = 0; i < pendingActionTypes.size(); ++i) {
+        if (pendingActionTypes[i] == "bribe" && pendingPerformers[i] == player) {
+            addExtraTurns(2);
+            pendingActionTypes.erase(pendingActionTypes.begin() + i);
+            pendingPerformers.erase(pendingPerformers.begin() + i);
+            pendingTargets.erase(pendingTargets.begin() + i);
+            break;
+        }
+    }
+
     if (pendingExtraTurns > 0) {
-        std::cout << "[DEBUG] BRIBE TURN used – still got more\n";
         pendingExtraTurns--;
+        std::cout << "[DEBUG] BRIBE TURN used – still got more (" << pendingExtraTurns << " left)\n";
+        // ❗ לא מבצעים nextTurn – נשאר בתור
     } else {
         std::cout << "[DEBUG] Regular turn used – moving to next player\n";
         nextTurn();
@@ -277,10 +306,8 @@ if (turnConsumed) {
             setLastActionMessage("🏆 Game Over! Winner: " + winner);
         } catch (...) {}
     }
-} else {
-    std::cout << "[DEBUG] No valid action performed – turn not consumed\n";
-    // השחקן יישאר בתורו – ניסיון לא נחשב
 }
+
 
 
 }

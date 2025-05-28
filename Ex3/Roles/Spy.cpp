@@ -2,9 +2,8 @@
 #include <iostream>
 
 
-Spy::Spy(const std::string& name) : Player(name) {
-    this->removeCoins(this->getCoins());  // מאפס את כמות המטבעות
-    }
+Spy::Spy(const std::string& name) : Player(name) {}
+    
 std::string Spy::getRoleName() const {
     return "Spy";
 }
@@ -14,10 +13,9 @@ void Spy::spyOn(Player& other) {
         throw std::invalid_argument("Cannot spy on an inactive player.");
     }
 
-    std::cout << name << " spied on " << other.getName()
-              << " who has " << other.getCoins() << " coins.\n";
+    other.setRevealedBySpy(true);       // לחשוף ל־GUI
+    other.setSpiedLastTurn(true);       // ✅ לחסום Arrest בתור הבא
 
-    std::cout << other.getName() << " will be prevented from arresting next turn.\n";
-
-    other.updateArrestBlock(true); // הפעלת חסימה
+    std::cout << "[DEBUG] " << other.getName() << " was spied on – blocking ARREST next turn" << std::endl;
 }
+

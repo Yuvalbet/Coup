@@ -13,7 +13,10 @@ protected:
     bool active;
     bool sanctioned;
     bool arrestedLastTurn;
-    int arrestBlockedTurns = 0;
+    bool revealedBySpy = false;
+    bool spiedLastTurn = false;
+
+
 
 
 public:
@@ -27,6 +30,10 @@ public:
     bool isSanctioned() const;
     bool wasArrestedLastTurn() const;
     bool isArrestBlocked() const;
+    bool isRevealedBySpy() const;
+    bool wasSpiedLastTurn() const;
+    int arrestBlockedTurns = 0;
+
 
     // Setters
     void addCoins(int amount);
@@ -35,6 +42,9 @@ public:
     void setSanctioned(bool value);
     void setArrestedLastTurn(bool value);
     void updateArrestBlock(bool reset);
+    void setRevealedBySpy(bool status);
+    void setSpiedLastTurn(bool value);
+    
 
 
     // תפקיד (מוחזר במחלקות יורשות)

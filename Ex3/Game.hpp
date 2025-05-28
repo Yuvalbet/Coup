@@ -27,6 +27,7 @@ private:
 
 
 
+
 public:
     Game();
 
@@ -39,10 +40,10 @@ public:
     std::string getWinner() const;
 
     void playTurn(int choice, Player* target = nullptr);
-
     void tryBlockBribe(Judge* judge);
     void tryBlockTax(Governor* governor);
     bool tryBlockCoup(Player* source, Player* target);
+    void addSpyBlockedPlayer(Player* p);
 
     std::vector<Player*> getValidTargets(Player* current) const;
 

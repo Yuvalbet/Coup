@@ -9,7 +9,7 @@ public:
 
     std::string getRoleName() const override;
 
-    void blockBribe(Player& target);
+    bool blockBribe(Player& target);
     void receiveSanctionFrom(Player& attacker);
 };
 
