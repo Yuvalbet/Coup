@@ -773,15 +773,36 @@ void runGameGUI(Game& game) {
             // Draw current player info and action buttons (outside the player loop)
             Player* currentPlayer = game.currentPlayer();
             if (currentPlayer) {
-                std::string infoText = "Turn: " + currentPlayer->getName() + " | Coins: " + std::to_string(currentPlayer->getCoins());
-                if (awaitingTarget) {
-                    infoText += " | " + displayMessage;
+               std::string infoText = "Turn: " + currentPlayer->getName() + " | Coins: " + std::to_string(currentPlayer->getCoins());
+
+                // תיבה צהובה ברקע
+                sf::RectangleShape infoBox(sf::Vector2f(400, 50));
+                infoBox.setFillColor(sf::Color(255, 255, 200));
+                infoBox.setOutlineThickness(2);
+                infoBox.setOutlineColor(sf::Color::Black);
+                infoBox.setOrigin(infoBox.getSize().x / 2, infoBox.getSize().y / 2);
+                infoBox.setPosition(window.getSize().x / 2.0f, window.getSize().y / 2.0f);
+
+                // טקסט ממורכז
+                int fontSize = 28;
+                sf::Text info(infoText, font, fontSize);
+                info.setFillColor(sf::Color::Black);
+
+                // מקטין את הפונט עד שהטקסט נכנס לרוחב של התיבה (400 פיקסלים פחות שוליים)
+                while (info.getLocalBounds().width > 360 && fontSize > 12) {
+                    fontSize--;
+                    info.setCharacterSize(fontSize);
                 }
-                sf::Text info(infoText, font, 22);
-                info.setFillColor(sf::Color(40, 40, 40));
-                info.setPosition(window.getSize().x - 500, 50);
+
+                // ממרכז את הטקסט בתיבה
+                sf::FloatRect textBounds = info.getLocalBounds();
+                info.setOrigin(textBounds.left + textBounds.width / 2, textBounds.top + textBounds.height / 2);
+                info.setPosition(window.getSize().x / 2.0f, window.getSize().y / 2.0f);
+
+                // ציור
+                window.draw(infoBox);
                 window.draw(info);
-                
+
                 // Only show action buttons if not awaiting target selection
                 if (!awaitingTarget) {
                     std::vector<std::string> actions;
@@ -799,11 +820,13 @@ void runGameGUI(Game& game) {
                     actionButtons.clear();
                     actionLabels.clear();
                     
-                    float bx = window.getSize().x - 220;
+                    float btnWidth = 130;
+                    float btnHeight = 35;
+                    float bx = window.getSize().x - btnWidth - 10; // הכי ימינה שאפשר
                     float by = 100;
-                    
+
                     for (const std::string& act : actions) {
-                        sf::RectangleShape btn(sf::Vector2f(180, 40));
+                        sf::RectangleShape btn(sf::Vector2f(btnWidth, btnHeight));
                         btn.setFillColor(sf::Color(255, 255, 200));
                         btn.setOutlineColor(sf::Color::Black);
                         btn.setOutlineThickness(2);
@@ -811,14 +834,18 @@ void runGameGUI(Game& game) {
                         actionButtons.push_back(btn);
                         actionLabels.push_back(act);
                         window.draw(btn);
-                        
-                        sf::Text text(act, font, 18);
+
+                        sf::Text text(act, font, 15); // גודל טקסט קטן יותר
                         text.setFillColor(sf::Color::Black);
-                        text.setPosition(bx + 10, by + 7);
+                        // נמרכז את הטקסט בכפתור
+                        sf::FloatRect textBounds = text.getLocalBounds();
+                        text.setOrigin(textBounds.left + textBounds.width / 2, textBounds.top + textBounds.height / 2);
+                        text.setPosition(bx + btnWidth / 2, by + btnHeight / 2);
                         window.draw(text);
-                        
-                        by += 50;
+
+                        by += btnHeight + 10; // ריווח אנכי
                     }
+
                 } else {
                     // Show instruction when awaiting target
                     sf::Text instruction("Click on a player to select as target", font, 20);
@@ -829,9 +856,20 @@ void runGameGUI(Game& game) {
             }
             
             if (!displayMessage.empty()) {
-                messageText.setString(displayMessage);
+                int fontSize = 22;
+                sf::Text messageText(displayMessage, font, fontSize);
+                messageText.setFillColor(sf::Color(100, 0, 0));
+
+                // מקטין את הפונט עד שהטקסט נכנס ברוחב של 500 פיקסלים
+                while (messageText.getLocalBounds().width > 500 && fontSize > 12) {
+                    fontSize--;
+                    messageText.setCharacterSize(fontSize);
+                }
+
+                messageText.setPosition(20, 20);
                 window.draw(messageText);
             }
+
         }
         
         window.display();
