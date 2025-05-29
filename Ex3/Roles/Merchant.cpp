@@ -28,3 +28,4 @@ void Merchant::receiveArrestFrom(Player& attacker) {
     setArrestedLastTurn(true);    // [TODO: Hebrew comment replaced – write English version]
     std::cout << name << " was arrested and paid 2 coins (no coins given to " << attacker.getName() << ").\n";
 }
+

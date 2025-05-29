@@ -4,6 +4,13 @@
 #include "Game.hpp"
 #include "Roles/Governor.hpp"
 #include "Roles/Spy.hpp"
+#include "Roles/Baron.hpp"
+#include "Roles/General.hpp"
+#include "Roles/Judge.hpp"      
+#include "Roles/Merchant.hpp"  
+
+
+
 
 
 // בדיקות בסיסיות
@@ -202,6 +209,29 @@ TEST_CASE("Spied player cannot perform arrest next turn") {
     CHECK_THROWS_WITH(spied.arrest(victim), "Spied is blocked from using arrest this turn.");
 }
 
+TEST_CASE("Spy action throws when spying on inactive player") {
+    Spy spy("Spy");
+    Governor target("Target");
+    target.deactivate();
+
+    CHECK_THROWS_WITH(spy.spyOn(target), "Cannot spy on an inactive player.");
+}
+
+TEST_CASE("Spy effect wears off after one turn if not renewed") {
+    Spy spy("Spy");
+    Governor target("Target");
+
+    // Spy on the target
+    spy.spyOn(target);
+    CHECK(target.wasSpiedLastTurn());
+
+    // Simulate game clearing the effect
+    target.setSpiedLastTurn(false);  // נאפס ידנית
+
+    CHECK_FALSE(target.wasSpiedLastTurn());
+}
+
+
 TEST_CASE("arrest block counter disables after reaching zero") {
     Governor p("Test");
 
@@ -302,6 +332,40 @@ TEST_CASE("tax fails when player is sanctioned") {
     p.setSanctioned(true);
     CHECK_THROWS_WITH(p.tax(), "Sanctioned player cannot use tax.");
 }
+
+TEST_CASE("Game constructor initializes members correctly") {
+    Game game;
+
+    // נוודא שהתור הראשון הוא 0
+    CHECK(game.getCurrentTurnIndex() == 0);
+
+    // כיוון שאין גטרים ל־sanctionedLastRound ול־lastArrestedPlayer,
+    // נבדוק פשוט שהפעולות שמסתמכות עליהם לא זורקות חריגות
+    CHECK_NOTHROW(game.getLastActionMessage()); // לא צריך לזרוק
+
+    // אפשר לבדוק שגם players ריק בתחילה
+    CHECK(game.getPlayers().empty());
+}
+
+TEST_CASE("getPlayers returns the correct player pointers") {
+    Game game;
+
+    Governor* p1 = new Governor("Alice");
+    Governor* p2 = new Governor("Bob");
+
+    game.addPlayer(p1);
+    game.addPlayer(p2);
+
+    const std::vector<Player*>& players = game.getPlayers();
+
+    CHECK(players.size() == 2);
+    CHECK(players[0] == p1);
+    CHECK(players[1] == p2);
+
+    delete p1;
+    delete p2;
+}
+
 
 TEST_CASE("setCurrentTurnIndex correctly updates turn index") {
     Game game;
@@ -457,4 +521,270 @@ TEST_CASE("playTurn executes GATHER and TAX correctly") {
 
     delete p1;
     delete p2;
+}
+
+TEST_CASE("tryBlockBribe calls Judge to block bribe") {
+    Game game;
+    Judge* judge = new Judge("Judge");
+    Governor* briber = new Governor("Briber");
+    
+    briber->addCoins(4);
+    game.addPlayer(judge);
+    game.addPlayer(briber);
+
+    game.setCurrentTurnIndex(1);  // Briber's turn
+    game.playTurn(5);  // Bribe
+
+    // Judge should now have chance to block
+    CHECK_NOTHROW(game.tryBlockBribe(judge));
+
+    delete judge;
+    delete briber;
+}
+
+TEST_CASE("tryBlockTax calls Governor to block tax") {
+    Game game;
+    Governor* blocker = new Governor("Blocker");
+    Governor* taxer = new Governor("Taxer");
+
+    game.addPlayer(blocker);
+    game.addPlayer(taxer);
+
+    taxer->addCoins(1);
+    game.setCurrentTurnIndex(1);
+    game.playTurn(2);  // Tax
+
+    CHECK_NOTHROW(game.tryBlockTax(blocker));
+
+    delete blocker;
+    delete taxer;
+}
+
+TEST_CASE("tryBlockCoup returns false if no block is performed") {
+    Game game;
+    Governor* p1 = new Governor("Attacker");
+    Governor* p2 = new Governor("Victim");
+
+    game.addPlayer(p1);
+    game.addPlayer(p2);
+
+    CHECK(game.tryBlockCoup(p1, p2) == false);
+
+    delete p1;
+    delete p2;
+}
+
+TEST_CASE("tryBlockCoup returns true if General is active and has enough coins") {
+    Game game;
+
+    Governor* attacker = new Governor("Attacker");
+    Governor* victim = new Governor("Victim");
+    General* general = new General("General");
+
+    attacker->addCoins(7); // כדי לאפשר ניסיון coup
+    general->addCoins(5);  // לגנרל יש מספיק כדי לחסום
+
+    game.addPlayer(attacker);
+    game.addPlayer(victim);
+    game.addPlayer(general);
+
+    CHECK(game.tryBlockCoup(attacker, victim) == true);
+
+    delete attacker;
+    delete victim;
+    delete general;
+}
+
+TEST_CASE("getValidTargets returns only other active players") {
+    Game game;
+
+    Governor* p1 = new Governor("P1");
+    Governor* p2 = new Governor("P2");
+    Governor* p3 = new Governor("P3");
+    p2->deactivate();  // לא פעיל
+
+    game.addPlayer(p1);
+    game.addPlayer(p2);
+    game.addPlayer(p3);
+
+    std::vector<Player*> targets = game.getValidTargets(p1);
+    CHECK(targets.size() == 1);
+    CHECK(targets[0]->getName() == "P3");
+
+    delete p1;
+    delete p2;
+    delete p3;
+}
+
+TEST_CASE("assignRandomRoles assigns players with correct names") {
+    Game game;
+    std::vector<std::string> names = {"A", "B", "C"};
+    game.assignRandomRoles(names);
+
+    std::vector<std::string> players = game.players();
+    CHECK(players.size() == 3);
+    CHECK(players[0] == "A");
+    CHECK(players[1] == "B");
+    CHECK(players[2] == "C");
+}
+
+TEST_CASE("getLastActionMessage returns the correct message") {
+    Game game;
+    game.setLastActionMessage("Hello world");
+    CHECK(game.getLastActionMessage() == "Hello world");
+}
+
+TEST_CASE("addExtraTurns allows extra playTurn without advancing") {
+    Game game;
+
+    Governor* p1 = new Governor("A");
+    Governor* p2 = new Governor("B");
+
+    game.addPlayer(p1);
+    game.addPlayer(p2);
+
+    p1->addCoins(4);
+    game.setCurrentTurnIndex(0);
+
+    game.playTurn(5);  // Bribe
+    game.addExtraTurns(1);
+
+    // עדיין תור של p1
+    CHECK(game.currentPlayer() == p1);
+
+    delete p1;
+    delete p2;
+}
+
+TEST_CASE("Governor blocks tax and cancels all coins gained from it") {
+    Game game;
+    Governor* gov = new Governor("Governor");
+    Spy* spy = new Spy("Spy");  // סתם תפקיד רגיל
+
+    game.addPlayer(gov);
+    game.addPlayer(spy);
+
+    spy->tax();
+    CHECK(spy->getCoins() == 2);
+
+    gov->blockTax(*spy);
+    CHECK(spy->getCoins() == 0);
+
+    delete gov;
+    delete spy;
+}
+
+TEST_CASE("Judge role name is correct") {
+    Judge j("Judgey");
+    CHECK(j.getRoleName() == "Judge");
+}
+
+TEST_CASE("Judge blockBribe returns true and prints message") {
+    Judge j("Judgey");
+    Governor g("Briber");
+
+    std::ostringstream oss;
+    std::streambuf* oldCout = std::cout.rdbuf(oss.rdbuf());  // הפניית cout
+
+    bool result = j.blockBribe(g);
+
+    std::cout.rdbuf(oldCout);  // החזרת הפלט
+
+    CHECK(result == true);
+    CHECK(oss.str().find("Briber's bribe was blocked by the Judge!") != std::string::npos);
+}
+
+TEST_CASE("Judge receives sanction and attacker loses 1 coin") {
+    Judge j("Judgey");
+    Governor attacker("Gov");
+
+    attacker.addCoins(2);
+    j.receiveSanctionFrom(attacker);
+
+    CHECK(attacker.getCoins() == 1);
+}
+
+TEST_CASE("Baron invests and gains coins") {
+    Baron b("Investor");
+    b.addCoins(3);  // יש לו בדיוק 3
+
+    CHECK_NOTHROW(b.invest());  // הפעולה לא זורקת חריגה
+    CHECK(b.getCoins() == 6);   // ירד 3, עלה 6 → נטו 3
+}
+
+TEST_CASE("Baron invest throws when not enough coins") {
+    Baron b("PoorBaron");
+    b.addCoins(2);  // פחות משלוש
+
+    CHECK_THROWS_WITH(b.invest(), "Not enough coins to invest.");
+}
+
+TEST_CASE("Baron receives coin when sanctioned") {
+    Baron b("Barony");
+    Governor attacker("Attacker");
+
+    int before = b.getCoins();
+    b.receiveSanctionFrom(attacker);
+    CHECK(b.getCoins() == before + 1);
+}
+
+
+TEST_CASE("General blocks coup when has enough coins") {
+    General g("Gabi");
+    Governor victim("Vicky");
+    Governor attacker("Attacker");
+
+    g.addCoins(5);
+    CHECK_NOTHROW(g.blockCoup(victim, attacker));
+    CHECK(g.getCoins() == 0);  // הוריד 5 מטבעות
+}
+
+TEST_CASE("General blockCoup throws if not enough coins") {
+    General g("Gabi");
+    Governor victim("Vicky");
+    Governor attacker("Attacker");
+
+    g.addCoins(4);  // לא מספיק
+    CHECK_THROWS_WITH(g.blockCoup(victim, attacker), "General doesn't have enough coins to block.");
+}
+
+TEST_CASE("General receiveArrestFrom sets arrested flag and prints") {
+    General g("Gabi");
+    Governor attacker("Attacker");
+
+    CHECK_NOTHROW(g.receiveArrestFrom(attacker));
+    // אין getter ל־arrested, אבל אין חריגה ואפשר להסתמך על הדפסת הודעה
+}
+
+TEST_CASE("Merchant gets bonus coin at start of turn if has 3 or more") {
+    Merchant m("Maya");
+    m.addCoins(3);  // תנאי להפעלת הבונוס
+
+    m.onStartTurn();  // בונוס אמור להתקבל
+    CHECK(m.getCoins() == 4);  // קיבל בונוס 1
+}
+
+TEST_CASE("Merchant does not get bonus coin if has less than 3") {
+    Merchant m("Maya");
+    m.addCoins(2);  // פחות מ־3
+
+    m.onStartTurn();  // אין בונוס
+    CHECK(m.getCoins() == 2);  // לא השתנה
+}
+
+TEST_CASE("Merchant arrested with enough coins pays 2 and gets arrested") {
+    Merchant m("Maya");
+    Governor attacker("Gov");
+
+    m.addCoins(3);
+    CHECK_NOTHROW(m.receiveArrestFrom(attacker));
+    CHECK(m.getCoins() == 1);  // ירדו 2
+}
+
+TEST_CASE("Merchant arrest throws if less than 2 coins") {
+    Merchant m("Maya");
+    Governor attacker("Gov");
+
+    m.addCoins(1);
+    CHECK_THROWS_WITH(m.receiveArrestFrom(attacker), "Maya does not have 2 coins to be arrested.");
 }

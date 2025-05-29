@@ -10,21 +10,12 @@ std::string Judge::getRoleName() const {
     return "Judge";
 }
 
+// Judge's bribe block: cancels bribe effect by not granting extra turns
 bool Judge::blockBribe(Player& performer) {
-    // [TODO: Hebrew comment replaced – write English version]
-    std::cout << "Do you want to block the bribe? (y/n): ";
-    char response;
-    std::cin >> response;
-
-    if (response == 'y' || response == 'Y') {
-        std::cout << "Bribe was blocked.\n";
-        return true;
-    } else {
-        std::cout << "Bribe not blocked.\n";
-        return false;
-    }
+    std::cout << performer.getName() << "'s bribe was blocked by the Judge!\n";
+    // Bribe was blocked, no extra turns granted – actual reversal should be handled in Game if needed
+    return true;
 }
-
 
 void Judge::receiveSanctionFrom(Player& attacker) {
     attacker.removeCoins(1);

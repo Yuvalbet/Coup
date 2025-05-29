@@ -61,8 +61,7 @@ public:
     void tryBlockBribe(Judge* judge);
     void tryBlockTax(Governor* governor);
     bool tryBlockCoup(Player* source, Player* target);
-    void addSpyBlockedPlayer(Player* p);
-
+    
     std::vector<Player*> getValidTargets(Player* current) const;
 
     void assignRandomRoles(const std::vector<std::string>& names);
