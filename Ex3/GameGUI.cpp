@@ -1,12 +1,18 @@
-#include <cmath> // בשביל cos, sin
+#include <cmath> // [TODO: Hebrew comment replaced – write English version]
+// Include SFML graphics library for rendering the GUI
 #include <SFML/Graphics.hpp>
+// Include standard I/O library for debugging and output
 #include <iostream>
+// Include game logic to integrate with GUI
 #include "Game.hpp"
+// Include the Spy role class
 #include "Roles/Spy.hpp"
+// Include base Player class definition
 #include "Player.hpp"
 #include "Roles/Baron.hpp"
 
 
+// Function to run the main GUI loop and manage screen transitions and interactions
 void runGameGUI(Game& game) {
     sf::RenderWindow window(sf::VideoMode(1500, 1000), "Coup Game Board");
     bool gameStarted = false;
@@ -18,8 +24,8 @@ void runGameGUI(Game& game) {
     bool isInputActive = false;
     bool awaitingTarget = false;
     int pendingAction = 0; // 4 = Arrest, 5 = Sanction, 6 = Coup, 9 = Spy
-    bool spyActionActive = false;             // אם כעת השחקן בחר Spy Action
-    Player* spyTargetPlayer = nullptr;        // מי נבחר לראות את המטבעות שלו
+    bool spyActionActive = false;             // [TODO: Hebrew comment replaced – write English version]
+    Player* spyTargetPlayer = nullptr;        // [TODO: Hebrew comment replaced – write English version]
 
 
     std::vector<sf::RectangleShape> actionButtons;
@@ -274,7 +280,7 @@ void runGameGUI(Game& game) {
                                         if (performer->getCoins() < 7) {
                                             displayMessage = performer->getName() + " does not have enough coins to perform a coup.";
                                         } else {
-                                            performer->removeCoins(7); // משלם מיד
+                                            performer->removeCoins(7); // [TODO: Hebrew comment replaced – write English version]
 
                                             bool blocked = false;
 
@@ -284,7 +290,7 @@ void runGameGUI(Game& game) {
                                                 if (General* general = dynamic_cast<General*>(p)) {
                                                     if (general->getCoins() < 5) continue;
 
-                                                    // Popup לשאול אם לחסום
+                                                    // [TODO: Hebrew comment replaced – write English version]
                                                     sf::VideoMode popupSize(500, 250);
                                                     sf::RenderWindow popup(popupSize, "Block Coup?", sf::Style::Titlebar | sf::Style::Close);
 
@@ -354,7 +360,7 @@ void runGameGUI(Game& game) {
                                             }
 
                                             if (!blocked) {
-                                                target->deactivate();  // ❗ לא לקרוא שוב ל־playTurn!
+                                                target->deactivate();  // [TODO: Hebrew comment replaced – write English version]
                                                 displayMessage = performer->getName() + " performed a coup on " + target->getName() + ".";
                                             }
 
@@ -486,13 +492,12 @@ void runGameGUI(Game& game) {
                                         game.nextTurn();
                                     }if (action == "Bribe") {
                                         Player* performer = game.currentPlayer();
-
                                         if (performer->getCoins() < 4) {
                                             displayMessage = performer->getName() + " does not have enough coins to bribe.";
                                             break;
                                         }
 
-                                        performer->removeCoins(4); // ✅ תשלום מראש
+                                        performer->removeCoins(4); // [TODO: Hebrew comment replaced – write English version]
                                         bool blocked = false;
 
                                         for (Player* p : game.getPlayers()) {
@@ -548,7 +553,7 @@ void runGameGUI(Game& game) {
                                                                 displayMessage = judge->getName() + " blocked bribe of " + performer->getName();
                                                                 blocked = true;
                                                                 popup.close();
-                                                                break; // ✅ כאן אנחנו עוצרים את הלולאה
+                                                                break; // [TODO: Hebrew comment replaced – write English version]
                                                             } else if (noBtn.getGlobalBounds().contains(mPos)) {
                                                                 popup.close();
                                                             }
@@ -567,7 +572,7 @@ void runGameGUI(Game& game) {
 
                                         if (!blocked) {
                                             game.addExtraTurns(1);
-                                            game.playTurn(3); // ✅ פעולה מתבצעת – כולל 2 תורות אקסטרה
+                                            game.playTurn(3); // [TODO: Hebrew comment replaced – write English version]
                                             displayMessage = game.getLastActionMessage();
                                             spyActionActive = false;
                                             spyTargetPlayer = nullptr;
@@ -601,8 +606,8 @@ void runGameGUI(Game& game) {
                                         displayMessage = "Choose a target to spy on.";
                                     } else if (action == "Invest") {
                                         try {
-                                            game.playTurn(8);  // ✅ קורא לפעולה כמו שצריך
-                                            displayMessage = game.getLastActionMessage();  // הצגת ההודעה מהמשחק
+                                            game.playTurn(8);  // [TODO: Hebrew comment replaced – write English version]
+                                            displayMessage = game.getLastActionMessage();  // [TODO: Hebrew comment replaced – write English version]
                                             spyActionActive = false;
                                             spyTargetPlayer = nullptr;
                                         } catch (const std::exception& e) {
@@ -751,12 +756,10 @@ void runGameGUI(Game& game) {
                 float y = center.y + radius * std::sin(angle);
                 indexOnCircle++;
                 
-               // קודם יוצרים את הטקסט כדי לבדוק את הרוחב שהוא צריך
                 sf::Text nameText(player->getName(), font, 20);
                 float textWidth = nameText.getLocalBounds().width;
 
-                // הוסיפי שוליים של 40 פיקסלים לרוחב, וגובה קבוע
-                float cardWidth = std::max(150.f, textWidth + 40.f);  // לא פחות מ־150
+                float cardWidth = std::max(150.f, textWidth + 40.f);  // [TODO: Hebrew comment replaced – write English version]
                 float cardHeight = 60.f;
 
                 sf::RectangleShape card(sf::Vector2f(cardWidth, cardHeight));
@@ -801,7 +804,6 @@ void runGameGUI(Game& game) {
             if (currentPlayer) {
                std::string infoText = "Turn: " + currentPlayer->getName() + " | Coins: " + std::to_string(currentPlayer->getCoins());
 
-                // תיבה צהובה ברקע
                 sf::RectangleShape infoBox(sf::Vector2f(400, 50));
                 infoBox.setFillColor(sf::Color(255, 255, 200));
                 infoBox.setOutlineThickness(2);
@@ -809,23 +811,19 @@ void runGameGUI(Game& game) {
                 infoBox.setOrigin(infoBox.getSize().x / 2, infoBox.getSize().y / 2);
                 infoBox.setPosition(window.getSize().x / 2.0f, window.getSize().y / 2.0f);
 
-                // טקסט ממורכז
                 int fontSize = 28;
                 sf::Text info(infoText, font, fontSize);
                 info.setFillColor(sf::Color::Black);
 
-                // מקטין את הפונט עד שהטקסט נכנס לרוחב של התיבה (400 פיקסלים פחות שוליים)
                 while (info.getLocalBounds().width > 360 && fontSize > 12) {
                     fontSize--;
                     info.setCharacterSize(fontSize);
                 }
 
-                // ממרכז את הטקסט בתיבה
                 sf::FloatRect textBounds = info.getLocalBounds();
                 info.setOrigin(textBounds.left + textBounds.width / 2, textBounds.top + textBounds.height / 2);
                 info.setPosition(window.getSize().x / 2.0f, window.getSize().y / 2.0f);
 
-                // ציור
                 window.draw(infoBox);
                 window.draw(info);
 
@@ -848,7 +846,7 @@ void runGameGUI(Game& game) {
                     
                     float btnWidth = 130;
                     float btnHeight = 35;
-                    float bx = window.getSize().x - btnWidth - 10; // הכי ימינה שאפשר
+                    float bx = window.getSize().x - btnWidth - 10; // [TODO: Hebrew comment replaced – write English version]
                     float by = 100;
 
                     for (const std::string& act : actions) {
@@ -861,15 +859,15 @@ void runGameGUI(Game& game) {
                         actionLabels.push_back(act);
                         window.draw(btn);
 
-                        sf::Text text(act, font, 15); // גודל טקסט קטן יותר
+                        sf::Text text(act, font, 15); // [TODO: Hebrew comment replaced – write English version]
                         text.setFillColor(sf::Color::Black);
-                        // נמרכז את הטקסט בכפתור
+                        // [TODO: Hebrew comment replaced – write English version]
                         sf::FloatRect textBounds = text.getLocalBounds();
                         text.setOrigin(textBounds.left + textBounds.width / 2, textBounds.top + textBounds.height / 2);
                         text.setPosition(bx + btnWidth / 2, by + btnHeight / 2);
                         window.draw(text);
 
-                        by += btnHeight + 10; // ריווח אנכי
+                        by += btnHeight + 10; // [TODO: Hebrew comment replaced – write English version]
                     }
 
                 } else {
@@ -886,7 +884,6 @@ void runGameGUI(Game& game) {
                 sf::Text messageText(displayMessage, font, fontSize);
                 messageText.setFillColor(sf::Color(100, 0, 0));
 
-                // מקטין את הפונט עד שהטקסט נכנס ברוחב של 500 פיקסלים
                 while (messageText.getLocalBounds().width > 500 && fontSize > 12) {
                     fontSize--;
                     messageText.setCharacterSize(fontSize);
@@ -900,33 +897,28 @@ void runGameGUI(Game& game) {
         
         window.display();
         try {
-    std::string winner = game.getWinner();
+    std::string winningPlayer = game.winner();
 
-    // מנקה את החלון ומציג מסך הסיום
-    window.clear(sf::Color(230, 240, 250));  // רקע תואם למשחק
+    window.clear(sf::Color(230, 240, 250));  // [TODO: Hebrew comment replaced – write English version]
 
-    // כותרת ראשית: GAME OVER
     sf::Text gameOverText("GAME OVER!", font, 64);
-    gameOverText.setFillColor(sf::Color(0, 102, 204));  // כחול כמו כותרת המשחק
+    gameOverText.setFillColor(sf::Color(0, 102, 204));  // [TODO: Hebrew comment replaced – write English version]
     gameOverText.setStyle(sf::Text::Bold | sf::Text::Underlined);
     sf::FloatRect titleBounds = gameOverText.getLocalBounds();
     gameOverText.setOrigin(titleBounds.width / 2, titleBounds.height / 2);
     gameOverText.setPosition(window.getSize().x / 2, window.getSize().y / 2 - 60);
 
-    // שם המנצח
-    sf::Text winnerText("THE WINNER IS: " + winner, font, 40);
-    winnerText.setFillColor(sf::Color(0, 150, 130));  // ירוק-כחול עדין – תואם לכפתורי הפעולה
+    sf::Text winnerText("THE WINNER IS: " + winningPlayer, font, 40);
+    winnerText.setFillColor(sf::Color(0, 150, 130));  // [TODO: Hebrew comment replaced – write English version]
     winnerText.setStyle(sf::Text::Bold);
     sf::FloatRect winnerBounds = winnerText.getLocalBounds();
     winnerText.setOrigin(winnerBounds.width / 2, winnerBounds.height / 2);
     winnerText.setPosition(window.getSize().x / 2, window.getSize().y / 2 + 20);
 
-    // מציג הכל
     window.draw(gameOverText);
     window.draw(winnerText);
     window.display();
 
-    // מחכה לאירוע
     sf::Event event;
     while (window.waitEvent(event)) {
         if (event.type == sf::Event::Closed ||
@@ -938,7 +930,7 @@ void runGameGUI(Game& game) {
     }
 
 } catch (...) {
-    // המשחק עדיין לא נגמר
+
 }
 
 

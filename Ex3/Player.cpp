@@ -2,6 +2,7 @@
 #include <iostream>
 
 // Constructor
+// Constructor initializes player with name, 0 coins, and sets them as active
 Player::Player(const std::string& name)
     : name(name), coins(0), active(true), sanctioned(false),arrestBlockedTurns(0) {}
 
@@ -10,10 +11,12 @@ std::string Player::getName() const {
     return name;
 }
 
+// Returns the player's current coin count
 int Player::getCoins() const {
     return coins;
 }
 
+// Returns true if the player is still active in the game
 bool Player::isActive() const {
     return active;
 }
@@ -27,6 +30,7 @@ bool Player::isArrestBlocked() const {
 }
 
 // Setters
+// Adds a given number of coins to the player
 void Player::addCoins(int amount) {
     if (amount < 0) {
         throw std::invalid_argument("Cannot add negative coins.");
@@ -34,6 +38,7 @@ void Player::addCoins(int amount) {
     coins += amount;
 }
 
+// Removes a given number of coins; throws an error if insufficient funds
 void Player::removeCoins(int amount) {
     if (amount < 0) {
         throw std::invalid_argument("Cannot remove negative coins.");
@@ -71,7 +76,7 @@ void Player::updateArrestBlock(bool reset) {
 
 
 void Player::receiveSanctionFrom(Player& attacker) {
-    // ברירת מחדל – לא עושה כלום
+    // [TODO: Hebrew comment replaced – write English version]
 }
 
 void Player::setRevealedBySpy(bool val) {
@@ -109,7 +114,7 @@ void Player::arrest(Player& other) {
         throw std::invalid_argument("Cannot arrest an inactive player.");
     }
 
-    // 🔍 הוספת הדפסת DEBUG לבדוק האם השחקן נחסם בגלל SPY
+    // [TODO: Hebrew comment replaced – write English version]
     std::cout << "[DEBUG] " << name << " wasSpiedLastTurn = "
               << (this->wasSpiedLastTurn() ? "YES" : "NO") << std::endl;
 
@@ -134,7 +139,7 @@ void Player::sanction(Player& other) {
     other.setSanctioned(true);
     std::cout << name << " sanctioned " << other.getName() << ".\n";
 
-    // ✅ הוספה: אם ל־other יש תגובה מיוחדת ל־sanction (כמו השופט), היא תופעל כאן
+    // [TODO: Hebrew comment replaced – write English version]
     other.receiveSanctionFrom(*this);
 }
 
@@ -153,13 +158,13 @@ void Player::receiveArrestFrom(Player& attacker) {
         throw std::runtime_error(name + " has no coins to be arrested.");
     }
 
-    removeCoins(1);         // יורד מהשחקן שנעצר
+    removeCoins(1);         // [TODO: Hebrew comment replaced – write English version]
     setArrestedLastTurn(true);
     onArrested();
 }
 
 void Player::onArrested() {
-    // ברירת מחדל – לא עושה כלום
+    // [TODO: Hebrew comment replaced – write English version]
 }
 
 
@@ -174,6 +179,5 @@ bool Player::wasSpiedLastTurn() const {
 void Player::setSpiedLastTurn(bool value) {
     spiedLastTurn = value;
 }
-
 
 

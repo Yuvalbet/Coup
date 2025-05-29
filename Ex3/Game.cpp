@@ -10,16 +10,20 @@
 #include "Player.hpp"
 #include <limits>
 
+// Constructor: initializes the game state and variables
 Game::Game() : currentTurnIndex(0), sanctionedLastRound(nullptr), lastArrestedPlayer(nullptr) {}
 
+// Adds a new player to the game
 void Game::addPlayer(Player* player) {
-    players.push_back(player);
+    playerList.push_back(player);
 }
 
+// Returns a constant reference to the list of players
 const std::vector<Player*>& Game::getPlayers() const {
-    return players;
+    return playerList;
 }
 
+// Advances the game to the next active player's turn
 void Game::nextTurn() {
     if (pendingExtraTurns > 0) {
         pendingExtraTurns--;
@@ -27,34 +31,34 @@ void Game::nextTurn() {
         return;
     }
 
-    // 🔁 שומרים את השחקן של התור הנוכחי לפני המעבר לתור הבא
-    Player* previousPlayer = players[currentTurnIndex];
+    // [TODO: Hebrew comment replaced – write English version]
+    Player* previousPlayer = playerList[currentTurnIndex];
 
-    // מעבר לשחקן הפעיל הבא
+    // [TODO: Hebrew comment replaced – write English version]
     do {
-        currentTurnIndex = (currentTurnIndex + 1) % players.size();
-    } while (!players[currentTurnIndex]->isActive());
+        currentTurnIndex = (currentTurnIndex + 1) % playerList.size();
+    } while (!playerList[currentTurnIndex]->isActive());
 
-    // 🧹 איפוס חסימת Spy רק מהשחקן הקודם
+    // [TODO: Hebrew comment replaced – write English version]
     previousPlayer->setSpiedLastTurn(false);
 
-    std::cout << "[DEBUG] Turn for: " << players[currentTurnIndex]->getName()
-              << ", arrestBlockedTurns = " << (players[currentTurnIndex]->isArrestBlocked() ? "YES" : "NO") << std::endl;
+    std::cout << "[DEBUG] Turn for: " << playerList[currentTurnIndex]->getName()
+              << ", arrestBlockedTurns = " << (playerList[currentTurnIndex]->isArrestBlocked() ? "YES" : "NO") << std::endl;
 
-    if (players[currentTurnIndex] == sanctionedLastRound) {
-        players[currentTurnIndex]->setSanctioned(true);
+    if (playerList[currentTurnIndex] == sanctionedLastRound) {
+        playerList[currentTurnIndex]->setSanctioned(true);
         sanctionedLastRound = nullptr;
     } else {
-        players[currentTurnIndex]->setSanctioned(false);
+        playerList[currentTurnIndex]->setSanctioned(false);
     }
 
-    Merchant* merchant = dynamic_cast<Merchant*>(players[currentTurnIndex]);
+    Merchant* merchant = dynamic_cast<Merchant*>(playerList[currentTurnIndex]);
     if (merchant && merchant->getCoins() >= 3) {
         merchant->onStartTurn();
     }
 
-     // ✅ איפוס חסימות Arrest מכל סיבה (כולל Spy)
-    for (Player* p : players) {
+     // [TODO: Hebrew comment replaced – write English version]
+    for (Player* p : playerList) {
         if (p->isActive()) {
             p->updateArrestBlock(false);
         }
@@ -63,13 +67,14 @@ void Game::nextTurn() {
 
 
 
+// Returns the current player whose turn it is
 Player* Game::currentPlayer() const {
-    return players[currentTurnIndex];
+    return playerList[currentTurnIndex];
 }
 
-std::vector<std::string> Game::getActivePlayerNames() const {
+std::vector<std::string> Game::players() const {
     std::vector<std::string> names;
-    for (Player* p : players) {
+    for (Player* p : playerList) {
         if (p->isActive()) {
             names.push_back(p->getName());
         }
@@ -77,18 +82,25 @@ std::vector<std::string> Game::getActivePlayerNames() const {
     return names;
 }
 
-std::string Game::getWinner() const {
+
+std::string Game::winner() const {
     std::string winner;
     int activeCount = 0;
-    for (Player* p : players) {
+    for (Player* p : playerList) {
         if (p->isActive()) {
             winner = p->getName();
             activeCount++;
         }
     }
-    if (activeCount == 1) return winner;
-    throw std::runtime_error("Game is still ongoing.");
+    if (activeCount != 1) {
+        throw std::runtime_error("Game is not over yet.");
+    }
+
+    std::cout << " Winner is: " << winner  << std::endl;  // ✅ הדפסת שם המנצח
+
+    return winner;
 }
+
 
 void Game::setCurrentTurnIndex(int index) {
     currentTurnIndex = index;
@@ -100,10 +112,10 @@ void Game::setCurrentTurnIndex(int index) {
 void Game::tryBlockBribe(Judge* judge) {
     for (size_t i = 0; i < pendingActionTypes.size(); ++i) {
     if (pendingActionTypes[i] == "bribe") {
-         // נניח שהשופט בחר לא לחסום
+         // [TODO: Hebrew comment replaced – write English version]
             bool blocked = judge->blockBribe(*pendingPerformers[i]);
             if (!blocked) {
-                // רק אם לא חסם – מוסיפים תורות
+                // [TODO: Hebrew comment replaced – write English version]
                 addExtraTurns(2);
             }
         pendingActionTypes.erase(pendingActionTypes.begin() + i);
@@ -131,7 +143,7 @@ void Game::tryBlockTax(Governor* governor) {
     std::cout << "No tax action to block.\n";
 }
 bool Game::tryBlockCoup(Player* source, Player* target) {
-    for (Player* p : players) {
+    for (Player* p : playerList) {
         if (!p->isActive()) continue;
 
         General* general = dynamic_cast<General*>(p);
@@ -146,9 +158,11 @@ bool Game::tryBlockCoup(Player* source, Player* target) {
 }
 
 
+// Handles the current player's action based on the chosen option
 void Game::playTurn(int choice, Player* target) {
+    turn();  // ✅ מדפיס את שם השחקן הנוכחי
     Player* player = currentPlayer();
-    bool turnConsumed = false;  // ✅ חדש
+    bool turnConsumed = false;  // [TODO: Hebrew comment replaced – write English version]
 
     if (player->getCoins() >= 10 && choice != 6) {
         throw std::runtime_error("You have 10+ coins. You MUST perform a coup.");
@@ -199,13 +213,13 @@ void Game::playTurn(int choice, Player* target) {
                 player->arrest(*target);
                 lastArrestedPlayer = target;
                 if (dynamic_cast<Merchant*>(target)) {
-                    // הסוחר כבר שילם 2, אין שינוי לעוצר
+                    // [TODO: Hebrew comment replaced – write English version]
                 }
                 else if (dynamic_cast<General*>(target)) {
-                    // הגנרל לא משלם, ולא מוסיפים לעוצר
+                    // [TODO: Hebrew comment replaced – write English version]
                 }
                 else {
-                    player->addCoins(1);  // שחקנים רגילים – מקבלים מטבע
+                    player->addCoins(1);  // [TODO: Hebrew comment replaced – write English version]
                 }   
                 setLastActionMessage(player->getName() + " arrested " + target->getName() + ".");
                 turnConsumed = true;
@@ -226,10 +240,10 @@ void Game::playTurn(int choice, Player* target) {
                     throw std::runtime_error("Not enough coins for coup.");
                 }
 
-                player->removeCoins(7); // ✅ תמיד יורדים 7 מטבעות
+                player->removeCoins(7); // [TODO: Hebrew comment replaced – write English version]
 
                 bool hasGeneral = false;
-                for (Player* p : players) {
+                for (Player* p : playerList) {
                     if (p != player && p->isActive()) {
                         if (dynamic_cast<General*>(p)) {
                             hasGeneral = true;
@@ -243,9 +257,10 @@ void Game::playTurn(int choice, Player* target) {
                     pendingPerformers.push_back(player);
                     pendingTargets.push_back(target);
                     setLastActionMessage(player->getName() + " attempted a coup. Waiting for General.");
-                    return; // ❗ עצירה כאן – נחכה להחלטת הגנרל
+                    return; // [TODO: Hebrew comment replaced – write English version]
                 } else {
-                    target->deactivate(); // ✅ מבצעים הפיכה אם אין מי שיחסום
+                    target->deactivate(); // [TODO: Hebrew comment replaced – write English version]
+                    turn();
                     setLastActionMessage(player->getName() + " performed a coup on " + target->getName() + ".");
                 }
 
@@ -283,7 +298,6 @@ void Game::playTurn(int choice, Player* target) {
 
 
 if (turnConsumed) {
-     // ✅ אם הפעולה שוחד לא נחסמה – נוסיף 2 תורות
     for (size_t i = 0; i < pendingActionTypes.size(); ++i) {
         if (pendingActionTypes[i] == "bribe" && pendingPerformers[i] == player) {
             addExtraTurns(2);
@@ -297,13 +311,12 @@ if (turnConsumed) {
     if (pendingExtraTurns > 0) {
         pendingExtraTurns--;
         std::cout << "[DEBUG] BRIBE TURN used – still got more (" << pendingExtraTurns << " left)\n";
-        // ❗ לא מבצעים nextTurn – נשאר בתור
     } else {
         std::cout << "[DEBUG] Regular turn used – moving to next player\n";
         nextTurn();
         try {
-            std::string winner = getWinner();
-            setLastActionMessage("🏆 Game Over! Winner: " + winner);
+            std::string winningPlayer = winner();
+            setLastActionMessage("🏆 Game Over! Winner: " + winner());
         } catch (...) {}
     }
 }
@@ -313,12 +326,9 @@ if (turnConsumed) {
 }
 
 
-
-
-
 std::vector<Player*> Game::getValidTargets(Player* current) const {
     std::vector<Player*> targets;
-    for (Player* p : players) {
+    for (Player* p : playerList) {
         if (p != current && p->isActive()) {
             targets.push_back(p);
         }
@@ -330,7 +340,7 @@ void Game::assignRandomRoles(const std::vector<std::string>& names) {
     std::srand(static_cast<unsigned int>(time(nullptr)));
 
     for (const std::string& name : names) {
-        int r = std::rand() % 6;  // מספר רנדומלי בין 0 ל־5
+        int r = std::rand() % 6;  // [TODO: Hebrew comment replaced – write English version]
 
         Player* player = nullptr;
 
@@ -342,26 +352,28 @@ void Game::assignRandomRoles(const std::vector<std::string>& names) {
             case 4: player = new Judge(name); break;
             case 5: player = new Merchant(name); break;
         }
-        player->removeCoins(player->getCoins()); // 👈 אפס מיד את המטבעות
+        player->removeCoins(player->getCoins()); // [TODO: Hebrew comment replaced – write English version]
 
-        this->addPlayer(player);  // ✅ נשמר לפי הסדר
+        this->addPlayer(player);  // [TODO: Hebrew comment replaced – write English version]
         std::cout << "[DEBUG] Added player: " << player->getName() << " @ " << player << ", coins: " << player->getCoins() << "\n";
 
     }
 
-    currentTurnIndex = 0; // תמיד מתחילים מהשחקן הראשון
+    currentTurnIndex = 0; // [TODO: Hebrew comment replaced – write English version]
 
     std::cout << "=== Players Memory Addresses ===\n";
-for (Player* p : players) {
+for (Player* p : playerList) {
     std::cout << p->getName() << " @ " << p << ", coins: " << p->getCoins() << "\n";
 }
 
 
 }
+// Returns the message describing the last action taken in the game
 std::string Game::getLastActionMessage() const {
     return lastActionMessage;
 }
 
+// Sets a message describing the last action taken in the game
 void Game::setLastActionMessage(const std::string& msg) {
     lastActionMessage = msg;
 }
@@ -369,4 +381,30 @@ void Game::setLastActionMessage(const std::string& msg) {
 void Game::addExtraTurns(int count) {
     pendingExtraTurns += count;
 }
+
+void Game::turn() const {
+    if (currentTurnIndex >= 0 && currentTurnIndex < playerList.size() && playerList[currentTurnIndex]->isActive()) {
+        std::cout << "It's " << playerList[currentTurnIndex]->getName() << "'s turn.\n";
+    } else {
+        std::cout << "No active player for current turn.\n";
+    }
+
+     // ✅ הדפסת שמות כל השחקנים הפעילים מהפונקציה players()
+    std::cout << "Active players: ";
+    for (const std::string& name : players()) {
+        std::cout << name << " ";
+    }
+    std::cout << std::endl;
+
+    try {
+    std::string win = winner();
+    std::cout << "🏆 Winner is: " << win << std::endl;
+} catch (const std::exception& e) {
+    std::cout << "[DEBUG] " << e.what() << std::endl;
+}
+
+
+}
+
+
 

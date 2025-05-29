@@ -3,7 +3,7 @@
 
 
 Judge::Judge(const std::string& name) : Player(name) {
-    this->removeCoins(this->getCoins());  // מאפס את כמות המטבעות
+    this->removeCoins(this->getCoins());  // [TODO: Hebrew comment replaced – write English version]
 }
 
 std::string Judge::getRoleName() const {
@@ -11,7 +11,7 @@ std::string Judge::getRoleName() const {
 }
 
 bool Judge::blockBribe(Player& performer) {
-    // אם חסם – מחזיר true, אם לא – false
+    // [TODO: Hebrew comment replaced – write English version]
     std::cout << "Do you want to block the bribe? (y/n): ";
     char response;
     std::cin >> response;
@@ -30,4 +30,3 @@ void Judge::receiveSanctionFrom(Player& attacker) {
     attacker.removeCoins(1);
     std::cout << attacker.getName() << " had to pay an extra coin for sanctioning the Judge.\n";
 }
-
