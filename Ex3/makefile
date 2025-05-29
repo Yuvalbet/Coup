@@ -28,7 +28,7 @@ SOURCES = \
 
 # [TODO: Hebrew comment replaced – write English version]
 TEST_SOURCES = \
-    Test.cpp \
+    test.cpp \
     Game.cpp \
     Player.cpp \
     Roles/Governor.cpp \
@@ -38,18 +38,14 @@ TEST_SOURCES = \
     Roles/Judge.cpp \
     Roles/Merchant.cpp
 
-# [TODO: Hebrew comment replaced – write English version]
 all: Main
 
-# [TODO: Hebrew comment replaced – write English version]
 $(EXEC_MAIN): $(SOURCES)
 	$(CXX) $(CXXFLAGS) $(SOURCES) -o $(EXEC_MAIN) $(LDFLAGS)
 
-# [TODO: Hebrew comment replaced – write English version]
 Main: $(EXEC_MAIN)
 	./$(EXEC_MAIN)
 
-# [TODO: Hebrew comment replaced – write English version]
 $(EXEC_TEST): $(TEST_SOURCES)
 	$(CXX) $(CXXFLAGS) $(TEST_SOURCES) -o $(EXEC_TEST) $(LDFLAGS)
 
@@ -57,12 +53,10 @@ $(EXEC_TEST): $(TEST_SOURCES)
 test: $(EXEC_TEST)
 	./$(EXEC_TEST)
 
-# [TODO: Hebrew comment replaced – write English version]
 # Rule to run Valgrind on the main executable to detect memory leaks
 valgrind: $(EXEC_MAIN)
 	valgrind --leak-check=full ./$(EXEC_MAIN)
 
-# [TODO: Hebrew comment replaced – write English version]
 # Cleans up all generated files to reset the build environment
 clean:
 	rm -f $(EXEC_MAIN) $(EXEC_TEST)

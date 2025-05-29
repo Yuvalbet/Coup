@@ -1,4 +1,5 @@
 #include "Governor.hpp"
+#include "../Game.hpp"  // דרוש כדי שהמחלקה Game תהיה ידועה
 #include <iostream>
 
 

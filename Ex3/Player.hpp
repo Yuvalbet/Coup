@@ -36,7 +36,6 @@ public:
     // Checks if the player is active in the game
     bool isActive() const;
     bool isSanctioned() const;
-    bool wasArrestedLastTurn() const;
     bool isArrestBlocked() const;
     bool isRevealedBySpy() const;
     bool wasSpiedLastTurn() const;
