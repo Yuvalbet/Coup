@@ -66,12 +66,6 @@ Each of these inherits from `Player` and overrides specific methods to define ro
 Using Doctest framework, we test the core game engine, turn mechanics, player state transitions, and unique behaviors of each role.
 
 
-## Testing
-
-Tests are structured with one `TEST_CASE` per class, using `SUBCASE`s to isolate different behaviors and edge cases. Roles and game mechanics are verified independently and in combination to ensure robust logic.
-
----
-
 ## Valgrind
 
 Valgrind is used to detect memory leaks and invalid memory use.
