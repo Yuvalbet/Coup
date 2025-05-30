@@ -1,0 +1,140 @@
+# Email: yuvali532@gmail.com
+# COUP: Strategy Role-Based Game
+
+## Overview
+
+Coup is a strategic role-based bluffing game where players compete to be the last one standing. Each player is secretly assigned a unique role with special abilities and can perform actions like gathering coins, launching a coup, bribing others, or arresting opponents. Some roles can block or interfere with these actions, leading to dynamic and tactical interactions.
+
+This project implements:
+
+* A modular object-oriented game engine in C++
+* Full support for 6 unique roles, each with its own logic
+* A graphical user interface (GUI) built using SFML
+* Doctest-based test suite for validating core game mechanics
+* A Makefile for streamlined compilation and testing
+
+---
+
+## Class Structure
+
+### 🎮 Game
+
+Manages the game's progression, including turn order, player management, role assignment, and win condition logic.
+
+### 👤 Player (Abstract Class)
+
+Base class for all roles. Handles common functionality such as coin balance, activity status, sanction status, and extra turns.
+
+### 🧩 Role Subclasses
+
+Each of these inherits from `Player` and overrides specific methods to define role-specific actions:
+
+* **Governor**: Gains 3 coins from tax and can block other players' tax actions.
+* **Baron**: Can invest coins for profit and gains 1 coin as compensation when sanctioned.
+* **General**: Can block coup attempts by paying 5 coins and regains the coin spent if arrested.
+* **Merchant**: Earns an extra coin each turn if starting with at least 3 coins. When arrested, pays 2 coins to the game instead of 1 to the attacker.
+* **Judge**: Can block bribe actions. If the Judge is sanctioned, the player who performed the sanction must pay 1 additional coin to the game.
+* **Spy**: Can reveal another player's coin count. Players who are spied on cannot arrest in their next turn.
+
+### 🪟 GUI Components
+
+* **Button**: Interactive UI element with text and click handling for player actions.
+
+### ✅ Unit Tests
+
+Using Doctest framework, we test the core game engine, turn mechanics, player state transitions, and unique behaviors of each role.
+
+---
+
+## File Overview
+
+| File / Directory  | Description                                    |
+| ----------------- | ---------------------------------------------- |
+| `Game.*`          | Core game logic and turn management            |
+| `Player.*`        | Abstract player class and common functionality |
+| `Roles/*.cpp/hpp` | Individual logic and interface for each role   |
+| `GameGUI.cpp`     | SFML GUI rendering and event loop              |
+| `main.cpp`        | Program entry point for running GUI            |
+| `test.cpp`        | Doctest unit test suite                        |
+| `makefile`        | Build automation targets                       |
+
+---
+
+## Testing
+
+Tests are structured with one `TEST_CASE` per class, using `SUBCASE`s to isolate different behaviors and edge cases. Roles and game mechanics are verified independently and in combination to ensure robust logic.
+
+---
+
+## Valgrind
+
+Valgrind is used to detect memory leaks and invalid memory use.
+By default, `make valgrind` runs the GUI version of the game (`main_exec`).  
+You can change the target manually in the Makefile to run memory checks on the test suite instead.
+
+### 🔍 Results
+
+- **No memory leaks were detected in the game logic**.
+- Valgrind reports **small memory leaks** when running the GUI version due to internal  
+  allocations from **SFML** and system libraries (e.g., `libgallium`, `libGLX_mesa`).  
+  These are **not caused by the code** and are safe to ignore.
+
+
+## External Libraries
+
+### C++ Standard:
+
+* `<iostream>`, `<vector>`, `<string>`, `<stdexcept>` — core logic and data handling
+
+### SFML:
+
+* `sfml-graphics` — GUI drawing
+* `sfml-window` — input and window events
+* `sfml-system` — base utilities
+
+---
+
+## Makefile Targets
+
+| Target          | Purpose                                   |
+| --------------- | ----------------------------------------- |
+| `make Main`     | Compile and run the game via GUI          |
+| `make test`     | Compile and run unit tests                |
+| `make valgrind` | Run memory checks with Valgrind           |
+| `make clean`    | Remove compiled binaries and object files |
+
+---
+
+## How to Run
+
+1. Ensure dependencies (`clang++`, `SFML`, `valgrind`) are installed.
+2. In the project root directory:
+
+### 🔹 Run the GUI Game:
+
+```bash
+make Main
+./Main
+```
+
+### 🔹 Run Tests:
+
+```bash
+make test
+```
+
+### 🔹 Check Memory:
+
+```bash
+make valgrind
+```
+
+### 🔹 Clean Build:
+
+```bash
+make clean
+```
+
+---
+
+Enjoy the game and may the best strategist win! 🏆

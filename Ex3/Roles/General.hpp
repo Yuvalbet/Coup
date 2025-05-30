@@ -1,10 +1,10 @@
-// Header file for the General class, a player role in the Coup game
+//Email: yuvali532@gmail.com
 #ifndef GENERAL_HPP
 #define GENERAL_HPP
 
 #include "../Player.hpp"
 
-// General role: can perform a coup and block coups from other players
+// The General class represents a role that can block Coup actions.
 class General : public Player {
 public:
     General(const std::string& name);
@@ -12,13 +12,12 @@ public:
     std::string getRoleName() const override;
 
 
-    // [TODO: Hebrew comment replaced – write English version]
+// General's special ability to block a Coup by paying 5 coins.
     void blockCoup(Player& target, Player& attacker);
 
     virtual void receiveArrestFrom(Player& attacker) override;
 
-    // [TODO: Hebrew comment replaced – write English version]
     void onArrested();
 };
 
-#endif // GENERAL_HPP
+#endif 

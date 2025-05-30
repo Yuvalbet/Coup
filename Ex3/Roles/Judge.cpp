@@ -1,9 +1,10 @@
+//Email: yuvali532@gmail.com
 #include "Judge.hpp"
 #include <iostream> 
 
 
 Judge::Judge(const std::string& name) : Player(name) {
-    this->removeCoins(this->getCoins());  // [TODO: Hebrew comment replaced – write English version]
+    this->removeCoins(this->getCoins()); 
 }
 
 std::string Judge::getRoleName() const {
@@ -17,6 +18,7 @@ bool Judge::blockBribe(Player& performer) {
     return true;
 }
 
+//If the Judge is attacked with a sanction, the player who imposed the sanction must pay an additional coin
 void Judge::receiveSanctionFrom(Player& attacker) {
     attacker.removeCoins(1);
     std::cout << attacker.getName() << " had to pay an extra coin for sanctioning the Judge.\n";

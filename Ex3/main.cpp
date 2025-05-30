@@ -1,18 +1,16 @@
-// Include the Game class definition to use the game logic here
+//Email: yuvali532@gmail.com
 #include "Game.hpp"
-void runGameGUI(Game& game);  // [TODO: Hebrew comment replaced – write English version]
 
-// Main function: entry point of the application
+// Starts the graphical user interface for the game.
+void runGameGUI(Game& game); 
+
+// Initializes the game and launches the GUI interface.
 int main() {
+// Creates a new Game instance to manage players and turns.
     Game game;
 
-    // [TODO: Hebrew comment replaced – write English version]
+ // Starts the graphical user interface for the game.
     runGameGUI(game);
-
-    // [TODO: Hebrew comment replaced – write English version]
-    for (Player* p : game.getPlayers()) {
-        delete p;
-    }
 
     return 0;
 }

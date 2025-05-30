@@ -1,3 +1,4 @@
+//Email: yuvali532@gmail.com
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include "Player.hpp"
@@ -10,10 +11,7 @@
 #include "Roles/Merchant.hpp"  
 
 
-
-
-
-// בדיקות בסיסיות
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Player basic creation and info") {
     Governor p("Alice");
 
@@ -22,7 +20,7 @@ TEST_CASE("Player basic creation and info") {
     CHECK(p.isActive());
 }
 
-// בדיקות על הוספה והורדה של מטבעות
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Player add and remove coins") {
     Governor p("Bob");
 
@@ -34,20 +32,20 @@ TEST_CASE("Player add and remove coins") {
 
     CHECK_THROWS_AS(p.removeCoins(4), std::invalid_argument);
 }
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("addCoins throws if negative amount") {
     Governor p("Test");
     CHECK_THROWS_WITH(p.addCoins(-1), "Cannot add negative coins.");
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("removeCoins throws if negative amount") {
     Governor p("Test");
     p.addCoins(5);
     CHECK_THROWS_WITH(p.removeCoins(-2), "Cannot remove negative coins.");
 }
 
-
-
-// בדיקת פלגים כמו active, sanction, spy
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Player status flags") {
     Governor p("Charlie");
 
@@ -70,7 +68,7 @@ TEST_CASE("Player status flags") {
     CHECK(p.wasSpiedLastTurn());
 }
 
-// בדיקת arrestBlockedTurns
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Player arrest block counter") {
     Governor p("Dana");
 
@@ -78,15 +76,15 @@ TEST_CASE("Player arrest block counter") {
     p.arrestBlockedTurns = 2;
     CHECK(p.isArrestBlocked() == true);
 
-    p.updateArrestBlock(false);  // הפחתה
+    p.updateArrestBlock(false); 
     CHECK(p.arrestBlockedTurns == 1);
 
-    p.updateArrestBlock(true);   // איפוס ל־1
+    p.updateArrestBlock(true);  
     CHECK(p.arrestBlockedTurns == 1);
     CHECK(p.isArrestBlocked() == true);
 }
 
-// gather – פעולה בסיסית + סנקציה
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("gather works unless sanctioned") {
     Governor p("Alice");
 
@@ -99,24 +97,25 @@ TEST_CASE("gather works unless sanctioned") {
 }
 
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("setArrestedLastTurn sets the correct value") {
     Governor p("Eden");
 
-    // פעולה שלא זורקת חריגה, אין גטר לבדיקה ישירה
     CHECK_NOTHROW(p.setArrestedLastTurn(true));
     CHECK_NOTHROW(p.setArrestedLastTurn(false));
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("getRoleName returns correct role for Governor") {
     Governor p("Liad");
     CHECK(p.getRoleName() == "Governor");
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Calling virtual functions that have no effect in base") {
     Governor p1("Tomer");
     Governor p2("Ziv");
 
-    // הוספת מטבע כדי למנוע חריגה בעת Arrest
     p1.addCoins(1);
 
     CHECK_NOTHROW(p1.receiveSanctionFrom(p2));
@@ -124,31 +123,29 @@ TEST_CASE("Calling virtual functions that have no effect in base") {
     CHECK_NOTHROW(p1.onArrested());
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Calling empty role-based actions on Governor safely") {
     Governor p1("Lior");
     Governor p2("Dana");
 
-    // Tax כן ממומש אצלו – צריך לבדוק גם את זה
     int before = p1.getCoins();
     CHECK_NOTHROW(p1.tax());
     CHECK(p1.getCoins() == before + 3);
 
-    // הוספת מטבעות כדי ש־bribe לא ייכשל
-    p1.addCoins(1); // עכשיו יש לו 4
+    p1.addCoins(1); 
     CHECK_NOTHROW(p1.bribe());
 
-    // הוספת מטבעות למטרה כדי ש־arrest לא ייכשל
     p2.addCoins(1);
     CHECK_NOTHROW(p1.arrest(p2));
 
-    p1.addCoins(3); // מוסיף לו מספיק בשביל sanction
+    p1.addCoins(3);
     CHECK_NOTHROW(p1.sanction(p2));
 
-    // הוספת מטבעות בשביל coup
     p1.addCoins(7);
     CHECK_NOTHROW(p1.coup(p2));
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Clearing spy and sanction flags works") {
     Governor p("Test");
 
@@ -165,6 +162,7 @@ TEST_CASE("Clearing spy and sanction flags works") {
     CHECK_FALSE(p.wasSpiedLastTurn());
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("gather works again after sanction is cleared") {
     Governor p("Test");
     p.setSanctioned(true);
@@ -175,6 +173,7 @@ TEST_CASE("gather works again after sanction is cleared") {
     CHECK(p.getCoins() == 1);
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Governor becomes inactive after coup") {
     Governor p1("A");
     Governor p2("B");
@@ -185,30 +184,29 @@ TEST_CASE("Governor becomes inactive after coup") {
     CHECK_FALSE(p2.isActive());
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Player gets extra turn after bribe") {
     Governor p("A");
     p.addCoins(4);
     CHECK_NOTHROW(p.bribe());
-    // כרגע אין דרך לבדוק ישירות את extraTurn - בדוק שהמטבעות ירדו
     CHECK(p.getCoins() == 0);
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Spied player cannot perform arrest next turn") {
     Spy spy("Spy");
     Governor spied("Spied");
     Governor victim("Victim");
 
-    // המרגל מרגל על השחקן
     spy.spyOn(spied);
 
-    // נותנים למי שרוצה לבצע arrest ולמטרה שלו כסף – כדי למנוע חריגת "אין מספיק מטבעות"
     spied.addCoins(1);
     victim.addCoins(1);
 
-    // השחקן שריגלו עליו מנסה לעצור – צריך להיכשל
     CHECK_THROWS_WITH(spied.arrest(victim), "Spied is blocked from using arrest this turn.");
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Spy action throws when spying on inactive player") {
     Spy spy("Spy");
     Governor target("Target");
@@ -217,6 +215,7 @@ TEST_CASE("Spy action throws when spying on inactive player") {
     CHECK_THROWS_WITH(spy.spyOn(target), "Cannot spy on an inactive player.");
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Spy effect wears off after one turn if not renewed") {
     Spy spy("Spy");
     Governor target("Target");
@@ -226,55 +225,59 @@ TEST_CASE("Spy effect wears off after one turn if not renewed") {
     CHECK(target.wasSpiedLastTurn());
 
     // Simulate game clearing the effect
-    target.setSpiedLastTurn(false);  // נאפס ידנית
+    target.setSpiedLastTurn(false); 
 
     CHECK_FALSE(target.wasSpiedLastTurn());
 }
 
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("arrest block counter disables after reaching zero") {
     Governor p("Test");
 
-    // מסמן שהוא חסום
     p.arrestBlockedTurns = 1;
     CHECK(p.isArrestBlocked());
 
-    // הפחתה בתור הבא – צריך לרדת לאפס
     p.updateArrestBlock(false);
     CHECK(p.arrestBlockedTurns == 0);
     CHECK_FALSE(p.isArrestBlocked());
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("coup throws if not enough coins") {
     Governor p1("A"), p2("B");
     CHECK_THROWS_WITH(p1.coup(p2), "Not enough coins to perform coup.");
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("coup deducts 7 coins from player") {
     Governor attacker("A");
     Governor target("B");
 
-    attacker.addCoins(10);  // יש לו מספיק
+    attacker.addCoins(10);  
     int before = attacker.getCoins();
     attacker.coup(target);
     CHECK(attacker.getCoins() == before - 7);
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("bribe throws if not enough coins") {
     Governor p("A");
     CHECK_THROWS_WITH(p.bribe(), "Not enough coins to remove.");
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("arrest succeeds even when performer has 0 coins") {
     Governor attacker("A");
     Governor target("B");
 
-    target.addCoins(1);  // למטרה יש לפחות מטבע אחד
+    target.addCoins(1); 
 
     CHECK_NOTHROW(attacker.arrest(target));
-    CHECK(target.getCoins() == 0);  // נלקח ממנו המטבע
+    CHECK(target.getCoins() == 0); 
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("arrest throws if target has no coins") {
     Governor attacker("A");
     Governor target("B");
@@ -282,71 +285,71 @@ TEST_CASE("arrest throws if target has no coins") {
     CHECK_THROWS_WITH(attacker.arrest(target), "B has no coins to be arrested.");
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("receiveArrestFrom throws if no coins and sets arrested flag otherwise") {
     Governor attacker("A");
     Governor target("B");
 
-    // בלי מטבעות – צריך לזרוק
     CHECK_THROWS_WITH(target.receiveArrestFrom(attacker), "B has no coins to be arrested.");
 
-    // עם מטבעות – לא צריך לזרוק
     target.addCoins(1);
     CHECK_NOTHROW(target.receiveArrestFrom(attacker));
 }
 
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("sanction throws if not enough coins") {
     Governor attacker("A");
     Governor target("B");
 
-    // attacker מתחיל עם 0 מטבעות
     CHECK_THROWS_WITH(attacker.sanction(target), "Not enough coins to perform sanction.");
 
-    attacker.addCoins(2);  // עדיין לא מספיק
+    attacker.addCoins(2); 
     CHECK_THROWS_WITH(attacker.sanction(target), "Not enough coins to perform sanction.");
 
-    attacker.addCoins(1);  // עכשיו יש לו 3
-    CHECK_NOTHROW(attacker.sanction(target));  // לא צריך לזרוק יותר
+    attacker.addCoins(1);
+    CHECK_NOTHROW(attacker.sanction(target)); 
     CHECK(target.isSanctioned());
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("sanction throws if target is inactive") {
     Governor attacker("A");
     Governor target("B");
 
     attacker.addCoins(3);
-    target.deactivate();  // עושה את השחקן לא פעיל
+    target.deactivate(); 
 
     CHECK_THROWS_WITH(attacker.sanction(target), "Cannot sanction an inactive player.");
 }
 
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("gather fails when player is sanctioned") {
     Governor p("Test");
     p.setSanctioned(true);
     CHECK_THROWS_WITH(p.gather(), "Sanctioned player cannot gather.");
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("tax fails when player is sanctioned") {
     Governor p("Test");
     p.setSanctioned(true);
     CHECK_THROWS_WITH(p.tax(), "Sanctioned player cannot use tax.");
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Game constructor initializes members correctly") {
     Game game;
 
-    // נוודא שהתור הראשון הוא 0
     CHECK(game.getCurrentTurnIndex() == 0);
 
-    // כיוון שאין גטרים ל־sanctionedLastRound ול־lastArrestedPlayer,
-    // נבדוק פשוט שהפעולות שמסתמכות עליהם לא זורקות חריגות
-    CHECK_NOTHROW(game.getLastActionMessage()); // לא צריך לזרוק
+    CHECK_NOTHROW(game.getLastActionMessage());
 
-    // אפשר לבדוק שגם players ריק בתחילה
     CHECK(game.getPlayers().empty());
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("getPlayers returns the correct player pointers") {
     Game game;
 
@@ -362,11 +365,10 @@ TEST_CASE("getPlayers returns the correct player pointers") {
     CHECK(players[0] == p1);
     CHECK(players[1] == p2);
 
-    delete p1;
-    delete p2;
 }
 
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("setCurrentTurnIndex correctly updates turn index") {
     Game game;
 
@@ -376,7 +378,6 @@ TEST_CASE("setCurrentTurnIndex correctly updates turn index") {
     game.addPlayer(p1);
     game.addPlayer(p2);
 
-    // ברירת מחדל היא 0 (Alice)
     CHECK(game.getCurrentTurnIndex() == 0);
 
     game.setCurrentTurnIndex(1);
@@ -385,10 +386,9 @@ TEST_CASE("setCurrentTurnIndex correctly updates turn index") {
     game.setCurrentTurnIndex(0);
     CHECK(game.getCurrentTurnIndex() == 0);
 
-    delete p1;
-    delete p2;
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("turn() prints the current player's name") {
     Game game;
 
@@ -400,19 +400,18 @@ TEST_CASE("turn() prints the current player's name") {
     game.setCurrentTurnIndex(1); // Bob
 
     std::ostringstream oss;
-    std::streambuf* oldCout = std::cout.rdbuf(); // שמירת הפלט הרגיל
-    std::cout.rdbuf(oss.rdbuf()); // הפניית cout ל־oss
+    std::streambuf* oldCout = std::cout.rdbuf(); 
+    std::cout.rdbuf(oss.rdbuf()); 
 
     game.turn();
 
-    std::cout.rdbuf(oldCout); // שחזור הפלט
+    std::cout.rdbuf(oldCout);
 
     CHECK(oss.str().find("Bob") != std::string::npos);
 
-    delete p1;
-    delete p2;
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("nextTurn advances to next active player") {
     Game game;
 
@@ -424,17 +423,15 @@ TEST_CASE("nextTurn advances to next active player") {
     game.addPlayer(p2);
     game.addPlayer(p3);
 
-    game.setCurrentTurnIndex(0); // מתחיל עם Alice
-    p2->deactivate(); // Bob לא פעיל – צריך לדלג עליו
+    game.setCurrentTurnIndex(0);
+    p2->deactivate(); 
 
     game.nextTurn();
-    CHECK(game.getCurrentTurnIndex() == 2); // ציפייה ש-Charlie עכשיו בתור
+    CHECK(game.getCurrentTurnIndex() == 2); 
 
-    delete p1;
-    delete p2;
-    delete p3;
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("currentPlayer returns the correct player") {
     Game game;
 
@@ -450,10 +447,9 @@ TEST_CASE("currentPlayer returns the correct player") {
     game.setCurrentTurnIndex(1);
     CHECK(game.currentPlayer() == p2);
 
-    delete p1;
-    delete p2;
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("players returns names of all players in correct order") {
     Game game;
 
@@ -471,11 +467,9 @@ TEST_CASE("players returns names of all players in correct order") {
     CHECK(names[1] == "Bob");
     CHECK(names[2] == "Charlie");
 
-    delete p1;
-    delete p2;
-    delete p3;
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("winner returns the name of the last active player") {
     Game game;
 
@@ -487,18 +481,15 @@ TEST_CASE("winner returns the name of the last active player") {
     game.addPlayer(p2);
     game.addPlayer(p3);
 
-    // מבטלים את שני הראשונים
     p1->deactivate();
     p2->deactivate();
 
-    // צריך לזהות את Charlie כמנצח
     CHECK(game.winner() == "Charlie");
 
-    delete p1;
-    delete p2;
-    delete p3;
+
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("playTurn executes GATHER and TAX correctly") {
     Game game;
 
@@ -508,21 +499,17 @@ TEST_CASE("playTurn executes GATHER and TAX correctly") {
     game.addPlayer(p1);
     game.addPlayer(p2);
 
-    // בתור ראשון: Alice
     CHECK(game.currentPlayer() == p1);
 
-    // פעולה 1 = Gather
     game.playTurn(1);
     CHECK(p1->getCoins() == 1);
 
-    // פעולה 2 = Tax
     game.playTurn(2);
     CHECK(p2->getCoins() == 3);
 
-    delete p1;
-    delete p2;
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("tryBlockBribe calls Judge to block bribe") {
     Game game;
     Judge* judge = new Judge("Judge");
@@ -538,10 +525,9 @@ TEST_CASE("tryBlockBribe calls Judge to block bribe") {
     // Judge should now have chance to block
     CHECK_NOTHROW(game.tryBlockBribe(judge));
 
-    delete judge;
-    delete briber;
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("tryBlockTax calls Governor to block tax") {
     Game game;
     Governor* blocker = new Governor("Blocker");
@@ -556,10 +542,9 @@ TEST_CASE("tryBlockTax calls Governor to block tax") {
 
     CHECK_NOTHROW(game.tryBlockTax(blocker));
 
-    delete blocker;
-    delete taxer;
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("tryBlockCoup returns false if no block is performed") {
     Game game;
     Governor* p1 = new Governor("Attacker");
@@ -570,10 +555,9 @@ TEST_CASE("tryBlockCoup returns false if no block is performed") {
 
     CHECK(game.tryBlockCoup(p1, p2) == false);
 
-    delete p1;
-    delete p2;
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("tryBlockCoup returns true if General is active and has enough coins") {
     Game game;
 
@@ -581,8 +565,8 @@ TEST_CASE("tryBlockCoup returns true if General is active and has enough coins")
     Governor* victim = new Governor("Victim");
     General* general = new General("General");
 
-    attacker->addCoins(7); // כדי לאפשר ניסיון coup
-    general->addCoins(5);  // לגנרל יש מספיק כדי לחסום
+    attacker->addCoins(7); 
+    general->addCoins(5); 
 
     game.addPlayer(attacker);
     game.addPlayer(victim);
@@ -590,18 +574,16 @@ TEST_CASE("tryBlockCoup returns true if General is active and has enough coins")
 
     CHECK(game.tryBlockCoup(attacker, victim) == true);
 
-    delete attacker;
-    delete victim;
-    delete general;
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("getValidTargets returns only other active players") {
     Game game;
 
     Governor* p1 = new Governor("P1");
     Governor* p2 = new Governor("P2");
     Governor* p3 = new Governor("P3");
-    p2->deactivate();  // לא פעיל
+    p2->deactivate(); 
 
     game.addPlayer(p1);
     game.addPlayer(p2);
@@ -611,11 +593,9 @@ TEST_CASE("getValidTargets returns only other active players") {
     CHECK(targets.size() == 1);
     CHECK(targets[0]->getName() == "P3");
 
-    delete p1;
-    delete p2;
-    delete p3;
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("assignRandomRoles assigns players with correct names") {
     Game game;
     std::vector<std::string> names = {"A", "B", "C"};
@@ -628,12 +608,14 @@ TEST_CASE("assignRandomRoles assigns players with correct names") {
     CHECK(players[2] == "C");
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("getLastActionMessage returns the correct message") {
     Game game;
     game.setLastActionMessage("Hello world");
     CHECK(game.getLastActionMessage() == "Hello world");
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("addExtraTurns allows extra playTurn without advancing") {
     Game game;
 
@@ -649,13 +631,12 @@ TEST_CASE("addExtraTurns allows extra playTurn without advancing") {
     game.playTurn(5);  // Bribe
     game.addExtraTurns(1);
 
-    // עדיין תור של p1
+    
     CHECK(game.currentPlayer() == p1);
 
-    delete p1;
-    delete p2;
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Governor blocks tax and cancels all coins gained from it") {
     Game game;
     Governor* gov = new Governor("Governor");
@@ -670,30 +651,31 @@ TEST_CASE("Governor blocks tax and cancels all coins gained from it") {
     gov->blockTax(*spy);
     CHECK(spy->getCoins() == 0);
 
-    delete gov;
-    delete spy;
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Judge role name is correct") {
     Judge j("Judgey");
     CHECK(j.getRoleName() == "Judge");
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Judge blockBribe returns true and prints message") {
     Judge j("Judgey");
     Governor g("Briber");
 
     std::ostringstream oss;
-    std::streambuf* oldCout = std::cout.rdbuf(oss.rdbuf());  // הפניית cout
+    std::streambuf* oldCout = std::cout.rdbuf(oss.rdbuf());
 
     bool result = j.blockBribe(g);
 
-    std::cout.rdbuf(oldCout);  // החזרת הפלט
+    std::cout.rdbuf(oldCout); 
 
     CHECK(result == true);
     CHECK(oss.str().find("Briber's bribe was blocked by the Judge!") != std::string::npos);
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Judge receives sanction and attacker loses 1 coin") {
     Judge j("Judgey");
     Governor attacker("Gov");
@@ -704,21 +686,24 @@ TEST_CASE("Judge receives sanction and attacker loses 1 coin") {
     CHECK(attacker.getCoins() == 1);
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Baron invests and gains coins") {
     Baron b("Investor");
-    b.addCoins(3);  // יש לו בדיוק 3
+    b.addCoins(3);  
 
-    CHECK_NOTHROW(b.invest());  // הפעולה לא זורקת חריגה
-    CHECK(b.getCoins() == 6);   // ירד 3, עלה 6 → נטו 3
+    CHECK_NOTHROW(b.invest());  
+    CHECK(b.getCoins() == 6);  
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Baron invest throws when not enough coins") {
     Baron b("PoorBaron");
-    b.addCoins(2);  // פחות משלוש
+    b.addCoins(2); 
 
     CHECK_THROWS_WITH(b.invest(), "Not enough coins to invest.");
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Baron receives coin when sanctioned") {
     Baron b("Barony");
     Governor attacker("Attacker");
@@ -729,6 +714,7 @@ TEST_CASE("Baron receives coin when sanctioned") {
 }
 
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("General blocks coup when has enough coins") {
     General g("Gabi");
     Governor victim("Vicky");
@@ -736,55 +722,60 @@ TEST_CASE("General blocks coup when has enough coins") {
 
     g.addCoins(5);
     CHECK_NOTHROW(g.blockCoup(victim, attacker));
-    CHECK(g.getCoins() == 0);  // הוריד 5 מטבעות
+    CHECK(g.getCoins() == 0);
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("General blockCoup throws if not enough coins") {
     General g("Gabi");
     Governor victim("Vicky");
     Governor attacker("Attacker");
 
-    g.addCoins(4);  // לא מספיק
+    g.addCoins(4); 
     CHECK_THROWS_WITH(g.blockCoup(victim, attacker), "General doesn't have enough coins to block.");
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("General receiveArrestFrom sets arrested flag and prints") {
     General g("Gabi");
     Governor attacker("Attacker");
 
     CHECK_NOTHROW(g.receiveArrestFrom(attacker));
-    // אין getter ל־arrested, אבל אין חריגה ואפשר להסתמך על הדפסת הודעה
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Merchant gets bonus coin at start of turn if has 3 or more") {
     Merchant m("Maya");
-    m.addCoins(3);  // תנאי להפעלת הבונוס
+    m.addCoins(3);  
 
-    m.onStartTurn();  // בונוס אמור להתקבל
-    CHECK(m.getCoins() == 4);  // קיבל בונוס 1
+    m.onStartTurn();
+    CHECK(m.getCoins() == 4);
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Merchant does not get bonus coin if has less than 3") {
     Merchant m("Maya");
-    m.addCoins(2);  // פחות מ־3
+    m.addCoins(2);  
 
-    m.onStartTurn();  // אין בונוס
-    CHECK(m.getCoins() == 2);  // לא השתנה
+    m.onStartTurn(); 
+    CHECK(m.getCoins() == 2); 
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Merchant arrested with enough coins pays 2 and gets arrested") {
     Merchant m("Maya");
     Governor attacker("Gov");
 
     m.addCoins(3);
     CHECK_NOTHROW(m.receiveArrestFrom(attacker));
-    CHECK(m.getCoins() == 1);  // ירדו 2
+    CHECK(m.getCoins() == 1);  
 }
 
+// A test case to verify functionality of the game logic or player behavior.
 TEST_CASE("Merchant arrest throws if less than 2 coins") {
     Merchant m("Maya");
     Governor attacker("Gov");
 
     m.addCoins(1);
     CHECK_THROWS_WITH(m.receiveArrestFrom(attacker), "Maya does not have 2 coins to be arrested.");
-}
+} 

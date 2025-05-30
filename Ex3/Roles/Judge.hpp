@@ -1,4 +1,4 @@
-// Header file for the Judge class, a player role in the Coup game
+//Email: yuvali532@gmail.com
 #ifndef JUDGE_HPP
 #define JUDGE_HPP
 
@@ -15,4 +15,4 @@ public:
     void receiveSanctionFrom(Player& attacker);
 };
 
-#endif // JUDGE_HPP
+#endif 

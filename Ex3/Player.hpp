@@ -1,4 +1,4 @@
-// This file defines the Player base class used in the Coup game.
+//Email: yuvali532@gmail.com
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
@@ -6,15 +6,13 @@
 #include <stdexcept>
 
 
-// Base class for all player types; holds common player data and methods.
+// The Player class defines a generic player in the game.
+// It includes common attributes and actions shared by all roles.
 class Player {
     class Game;
 protected:
-    // Player's name
     std::string name;
-    // Number of coins the player currently has
     int coins;
-    // Whether the player is still active in the game
     bool active;
     bool sanctioned;
     bool arrestedLastTurn;
@@ -30,11 +28,13 @@ public:
     virtual ~Player() = default;
 
     // Getters
+// Returns the player's name.
     std::string getName() const;
-    // Gets the current number of coins the player has
+// Returns the number of coins the player has.
     int getCoins() const;
-    // Checks if the player is active in the game
+// Checks if the player is still active in the game.
     bool isActive() const;
+// Checks if the player is currently under sanction.
     bool isSanctioned() const;
     bool isArrestBlocked() const;
     bool isRevealedBySpy() const;
@@ -43,11 +43,12 @@ public:
 
 
     // Setters
-    // Adds a specified amount of coins to the player
+// Adds coins to the player's balance.
     void addCoins(int amount);
-    // Deducts a specified amount of coins from the player
+// Deducts coins from the player's balance.
     void removeCoins(int amount);
     void deactivate();
+// Sets the player's sanction status.
     void setSanctioned(bool value);
     void setArrestedLastTurn(bool value);
     void updateArrestBlock(bool reset);
@@ -56,20 +57,18 @@ public:
     
 
 
-    // [TODO: Hebrew comment replaced – write English version]
     virtual std::string getRoleName() const = 0;
-    virtual void receiveSanctionFrom(Player& attacker);  // [TODO: Hebrew comment replaced – write English version]
+    virtual void receiveSanctionFrom(Player& attacker);  
     virtual void receiveArrestFrom(Player& attacker);
     virtual void onArrested();
 
-    // [TODO: Hebrew comment replaced – write English version]
-    virtual void gather();                      // [TODO: Hebrew comment replaced – write English version]
-    virtual void tax();                         // [TODO: Hebrew comment replaced – write English version]
-    virtual void bribe();                       // [TODO: Hebrew comment replaced – write English version]
-    virtual void arrest(Player& other);         // [TODO: Hebrew comment replaced – write English version]
-    virtual void sanction(Player& other);       // [TODO: Hebrew comment replaced – write English version]
-    virtual void coup(Player& other);           // [TODO: Hebrew comment replaced – write English version]
+    virtual void gather();          
+    virtual void tax();                         
+    virtual void bribe();                       
+    virtual void arrest(Player& other);         
+    virtual void sanction(Player& other);       
+    virtual void coup(Player& other);           
 };
 
-#endif // PLAYER_HPP
+#endif 
  

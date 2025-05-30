@@ -1,4 +1,4 @@
-# [TODO: Hebrew comment replaced – write English version]
+//Email: yuvali532@gmail.com 
 # The C++ compiler to use for building the project
 CXX = g++
 # Compiler flags:
@@ -9,11 +9,9 @@ CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -g
 LDFLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 
-# [TODO: Hebrew comment replaced – write English version]
 EXEC_MAIN = main_exec
 EXEC_TEST = test_exec
 
-# [TODO: Hebrew comment replaced – write English version]
 SOURCES = \
     main.cpp \
     Game.cpp \
@@ -26,7 +24,6 @@ SOURCES = \
     Roles/Merchant.cpp \
     GameGUI.cpp
 
-# [TODO: Hebrew comment replaced – write English version]
 TEST_SOURCES = \
     test.cpp \
     Game.cpp \
@@ -38,6 +35,7 @@ TEST_SOURCES = \
     Roles/Judge.cpp \
     Roles/Merchant.cpp
 
+# Default target: builds the main program
 all: Main
 
 $(EXEC_MAIN): $(SOURCES)
@@ -49,7 +47,7 @@ Main: $(EXEC_MAIN)
 $(EXEC_TEST): $(TEST_SOURCES)
 	$(CXX) $(CXXFLAGS) $(TEST_SOURCES) -o $(EXEC_TEST) $(LDFLAGS)
 
-# Rule to execute the compiled unit tests
+# Rule to run unit tests
 test: $(EXEC_TEST)
 	./$(EXEC_TEST)
 
@@ -57,6 +55,6 @@ test: $(EXEC_TEST)
 valgrind: $(EXEC_MAIN)
 	valgrind --leak-check=full ./$(EXEC_MAIN)
 
-# Cleans up all generated files to reset the build environment
+# Rule to remove compiled files and executables
 clean:
 	rm -f $(EXEC_MAIN) $(EXEC_TEST)

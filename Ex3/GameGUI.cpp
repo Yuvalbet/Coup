@@ -1,13 +1,10 @@
-#include <cmath> // [TODO: Hebrew comment replaced – write English version]
+//Email: yuvali532@gmail.com
+#include <cmath> 
 // Include SFML graphics library for rendering the GUI
 #include <SFML/Graphics.hpp>
-// Include standard I/O library for debugging and output
 #include <iostream>
-// Include game logic to integrate with GUI
 #include "Game.hpp"
-// Include the Spy role class
 #include "Roles/Spy.hpp"
-// Include base Player class definition
 #include "Player.hpp"
 #include "Roles/Baron.hpp"
 
@@ -24,9 +21,8 @@ void runGameGUI(Game& game) {
     bool isInputActive = false;
     bool awaitingTarget = false;
     int pendingAction = 0; // 4 = Arrest, 5 = Sanction, 6 = Coup, 9 = Spy
-    bool spyActionActive = false;             // [TODO: Hebrew comment replaced – write English version]
-    Player* spyTargetPlayer = nullptr;        // [TODO: Hebrew comment replaced – write English version]
-
+    bool spyActionActive = false;             
+    Player* spyTargetPlayer = nullptr;       
 
     std::vector<sf::RectangleShape> actionButtons;
     std::vector<std::string> actionLabels;
@@ -232,7 +228,6 @@ void runGameGUI(Game& game) {
                     }
                 }
             }
-            // FIXED: Move the main game screen event handling here, OUTSIDE the drawing loop
             else if (gameStarted && showMainGameScreen) {
                 if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
                     sf::Vector2f mousePos(event.mouseButton.x, event.mouseButton.y);
@@ -280,7 +275,7 @@ void runGameGUI(Game& game) {
                                         if (performer->getCoins() < 7) {
                                             displayMessage = performer->getName() + " does not have enough coins to perform a coup.";
                                         } else {
-                                            performer->removeCoins(7); // [TODO: Hebrew comment replaced – write English version]
+                                            performer->removeCoins(7); 
 
                                             bool blocked = false;
 
@@ -290,7 +285,6 @@ void runGameGUI(Game& game) {
                                                 if (General* general = dynamic_cast<General*>(p)) {
                                                     if (general->getCoins() < 5) continue;
 
-                                                    // [TODO: Hebrew comment replaced – write English version]
                                                     sf::VideoMode popupSize(500, 250);
                                                     sf::RenderWindow popup(popupSize, "Block Coup?", sf::Style::Titlebar | sf::Style::Close);
 
@@ -360,7 +354,7 @@ void runGameGUI(Game& game) {
                                             }
 
                                             if (!blocked) {
-                                                target->deactivate();  // [TODO: Hebrew comment replaced – write English version]
+                                                target->deactivate();  
                                                 displayMessage = performer->getName() + " performed a coup on " + target->getName() + ".";
                                             }
 
@@ -497,7 +491,7 @@ void runGameGUI(Game& game) {
                                             break;
                                         }
 
-                                        performer->removeCoins(4); // [TODO: Hebrew comment replaced – write English version]
+                                        performer->removeCoins(4); 
                                         bool blocked = false;
 
                                         for (Player* p : game.getPlayers()) {
@@ -553,7 +547,7 @@ void runGameGUI(Game& game) {
                                                                 displayMessage = judge->getName() + " blocked bribe of " + performer->getName();
                                                                 blocked = true;
                                                                 popup.close();
-                                                                break; // [TODO: Hebrew comment replaced – write English version]
+                                                                break; 
                                                             } else if (noBtn.getGlobalBounds().contains(mPos)) {
                                                                 popup.close();
                                                             }
@@ -572,7 +566,7 @@ void runGameGUI(Game& game) {
 
                                         if (!blocked) {
                                             game.addExtraTurns(1);
-                                            game.playTurn(3); // [TODO: Hebrew comment replaced – write English version]
+                                            game.playTurn(3); 
                                             displayMessage = game.getLastActionMessage();
                                             spyActionActive = false;
                                             spyTargetPlayer = nullptr;
@@ -606,8 +600,8 @@ void runGameGUI(Game& game) {
                                         displayMessage = "Choose a target to spy on.";
                                     } else if (action == "Invest") {
                                         try {
-                                            game.playTurn(8);  // [TODO: Hebrew comment replaced – write English version]
-                                            displayMessage = game.getLastActionMessage();  // [TODO: Hebrew comment replaced – write English version]
+                                            game.playTurn(8);  
+                                            displayMessage = game.getLastActionMessage();  
                                             spyActionActive = false;
                                             spyTargetPlayer = nullptr;
                                         } catch (const std::exception& e) {
@@ -759,7 +753,7 @@ void runGameGUI(Game& game) {
                 sf::Text nameText(player->getName(), font, 20);
                 float textWidth = nameText.getLocalBounds().width;
 
-                float cardWidth = std::max(150.f, textWidth + 40.f);  // [TODO: Hebrew comment replaced – write English version]
+                float cardWidth = std::max(150.f, textWidth + 40.f); 
                 float cardHeight = 60.f;
 
                 sf::RectangleShape card(sf::Vector2f(cardWidth, cardHeight));
@@ -846,7 +840,7 @@ void runGameGUI(Game& game) {
                     
                     float btnWidth = 130;
                     float btnHeight = 35;
-                    float bx = window.getSize().x - btnWidth - 10; // [TODO: Hebrew comment replaced – write English version]
+                    float bx = window.getSize().x - btnWidth - 10; 
                     float by = 100;
 
                     for (const std::string& act : actions) {
@@ -859,15 +853,14 @@ void runGameGUI(Game& game) {
                         actionLabels.push_back(act);
                         window.draw(btn);
 
-                        sf::Text text(act, font, 15); // [TODO: Hebrew comment replaced – write English version]
+                        sf::Text text(act, font, 15);
                         text.setFillColor(sf::Color::Black);
-                        // [TODO: Hebrew comment replaced – write English version]
                         sf::FloatRect textBounds = text.getLocalBounds();
                         text.setOrigin(textBounds.left + textBounds.width / 2, textBounds.top + textBounds.height / 2);
                         text.setPosition(bx + btnWidth / 2, by + btnHeight / 2);
                         window.draw(text);
 
-                        by += btnHeight + 10; // [TODO: Hebrew comment replaced – write English version]
+                        by += btnHeight + 10; 
                     }
 
                 } else {
@@ -899,17 +892,17 @@ void runGameGUI(Game& game) {
         try {
     std::string winningPlayer = game.winner();
 
-    window.clear(sf::Color(230, 240, 250));  // [TODO: Hebrew comment replaced – write English version]
+    window.clear(sf::Color(230, 240, 250));  
 
     sf::Text gameOverText("GAME OVER!", font, 64);
-    gameOverText.setFillColor(sf::Color(0, 102, 204));  // [TODO: Hebrew comment replaced – write English version]
+    gameOverText.setFillColor(sf::Color(0, 102, 204));  
     gameOverText.setStyle(sf::Text::Bold | sf::Text::Underlined);
     sf::FloatRect titleBounds = gameOverText.getLocalBounds();
     gameOverText.setOrigin(titleBounds.width / 2, titleBounds.height / 2);
     gameOverText.setPosition(window.getSize().x / 2, window.getSize().y / 2 - 60);
 
     sf::Text winnerText("THE WINNER IS: " + winningPlayer, font, 40);
-    winnerText.setFillColor(sf::Color(0, 150, 130));  // [TODO: Hebrew comment replaced – write English version]
+    winnerText.setFillColor(sf::Color(0, 150, 130));  
     winnerText.setStyle(sf::Text::Bold);
     sf::FloatRect winnerBounds = winnerText.getLocalBounds();
     winnerText.setOrigin(winnerBounds.width / 2, winnerBounds.height / 2);

@@ -1,8 +1,8 @@
-// Header file for the Governor class, a player role in the Coup game
+//Email: yuvali532@gmail.com
 #ifndef GOVERNOR_HPP
 #define GOVERNOR_HPP
 
-#include "../Player.hpp"  // [TODO: Hebrew comment replaced – write English version]
+#include "../Player.hpp"   
 
 // Governor role: can collect tax and block tax actions of other players
 class Governor : public Player {
@@ -12,8 +12,9 @@ public:
     std::string getRoleName() const override;
     // Executes the Governor's tax action, gaining 3 coins
     void tax() override;
+// Governor's special ability to block a Tax action by another player.
     void blockTax(Player& target);
 
 };
 
-#endif // GOVERNOR_HPP
+#endif 
