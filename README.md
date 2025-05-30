@@ -13,52 +13,58 @@ This project implements:
 * Doctest-based test suite for validating core game mechanics
 * A Makefile for streamlined compilation and testing
 
----
 
-## Class Structure
+## 🎮 Game Instructions & Flow
 
-### 🎮 Game
+1. Each player is assigned a hidden role with special powers.
+2. On each turn, a player may:
+   - **Gather**: Take 1 coin.
+   - **Tax**: All players take 2 coins, but the Governor takes 3 (can be blocked by Governor).
+   - **Bribe**: Pay 4 coins to gain 2 extra turns (can be blocked by Judge).
+   - **Sanction**: Pay 3 coins to weaken another player (extra cost if Judge is targeted).
+   - **Coup**: Pay 7 coins to eliminate a player (can be blocked by General).
+   - **Arrest**: Neutralize a player temporarily.
+   - **Spy**: View another player's coins and block their arrest ability.
+3. Certain roles can **block** or modify these actions.
+4. Game ends when only one player remains active.
 
-Manages the game's progression, including turn order, player management, role assignment, and win condition logic.
 
-### 👤 Player (Abstract Class)
-
-Base class for all roles. Handles common functionality such as coin balance, activity status, sanction status, and extra turns.
-
-### 🧩 Role Subclasses
+## 🧩 Roles
 
 Each of these inherits from `Player` and overrides specific methods to define role-specific actions:
 
-* **Governor**: Gains 3 coins from tax and can block other players' tax actions.
-* **Baron**: Can invest coins for profit and gains 1 coin as compensation when sanctioned.
-* **General**: Can block coup attempts by paying 5 coins and regains the coin spent if arrested.
-* **Merchant**: Earns an extra coin each turn if starting with at least 3 coins. When arrested, pays 2 coins to the game instead of 1 to the attacker.
-* **Judge**: Can block bribe actions. If the Judge is sanctioned, the player who performed the sanction must pay 1 additional coin to the game.
-* **Spy**: Can reveal another player's coin count. Players who are spied on cannot arrest in their next turn.
+- **Governor**: Can block other players' Tax actions, and when using Tax themselves, gains 3 coins instead of 2.
+- **Baron**: Can invest 3 coins to receive 6 in return. If targeted with a sanction, receives 1 coin as compensation.
+- **General**: Can block Coup actions. If the General is arrested, neither their coins nor the arresting player’s coins are affected.
+- **Merchant**: If starting a turn with at least 3 coins, gains 1 extra coin. When arrested, pays 2 coins (instead of giving 1 to the attacker).
+- **Judge**: Can block Bribe actions. If sanctioned, the attacker must pay an additional coin as a penalty.
+- **Spy**: Views other players' coin counts and prevents them from arresting next turn.
 
-### 🪟 GUI Components
 
-* **Button**: Interactive UI element with text and click handling for player actions.
+## 🪟 GUI Features
+
+- Welcome screen
+- Player count and name input with validation
+- Visual role indication and in-game status
+- Turn-based action buttons with visual feedback
+- Popups for target selection and error messages
+
+
+## 📁 Project Structure
+
+- `main.cpp` – Entry point to launch the game via GUI
+- `Game.cpp` / `Game.hpp` – Core logic: turn handling, player management, and game rules
+- `Player.cpp` / `Player.hpp` – Base class for all roles, handles coin balance, status, and shared actions
+- `Roles/` – Directory with all role-specific classes (Spy, Judge, General, Baron, Governor, Merchant)
+- `GameGUI.cpp` – SFML-based GUI rendering and user interaction
+- `test.cpp` – Doctest-based test suite
+- `Makefile` – Automation for build, test, Valgrind, and GUI launch
+
 
 ### ✅ Unit Tests
 
 Using Doctest framework, we test the core game engine, turn mechanics, player state transitions, and unique behaviors of each role.
 
----
-
-## File Overview
-
-| File / Directory  | Description                                    |
-| ----------------- | ---------------------------------------------- |
-| `Game.*`          | Core game logic and turn management            |
-| `Player.*`        | Abstract player class and common functionality |
-| `Roles/*.cpp/hpp` | Individual logic and interface for each role   |
-| `GameGUI.cpp`     | SFML GUI rendering and event loop              |
-| `main.cpp`        | Program entry point for running GUI            |
-| `test.cpp`        | Doctest unit test suite                        |
-| `makefile`        | Build automation targets                       |
-
----
 
 ## Testing
 
