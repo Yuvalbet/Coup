@@ -11,7 +11,7 @@ std::string Baron::getRoleName() const {
     return "Baron";
 }
 
-// Baron invests:  can invest 3 coins and receive 6 coins in return.
+// Baron invests: can invest 3 coins and receive 6 coins in return.
 void Baron::invest() {
     if (coins < 3) {
         throw std::invalid_argument("Not enough coins to invest.");
