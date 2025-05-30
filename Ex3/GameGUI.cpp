@@ -35,7 +35,7 @@ void runGameGUI(Game& game) {
     std::string displayMessage = "";
     
     sf::Font font;
-    if (!font.loadFromFile("/usr/share/fonts/truetype/msttcorefonts/arial.ttf")) {
+    if (!font.loadFromFile("assets/fonts/arial.ttf")) {
         std::cerr << " Error loading font" << std::endl;
         return;
     }
